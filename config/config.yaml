@@ -1,0 +1,10 @@
+server:
+  host: 127.0.0.1
+  port: 8080
+  secret: 'your secret'
+
+# Configuracion de la base de datos
+database:
+  name: wifiGhostdb
+  user: wGhost
+  password: WiFiGhost
