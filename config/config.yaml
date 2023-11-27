@@ -2,6 +2,10 @@ server:
   host: 127.0.0.1
   port: 8080
   secret: 'your secret'
+  sessionType: 'filesystem'
+
+mac:
+  oui: "6c:e9:07"
 
 # Configuracion de la base de datos
 database:
