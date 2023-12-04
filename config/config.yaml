@@ -3,6 +3,7 @@ server:
   port: 8080
   secret: 'your secret'
   sessionType: 'filesystem'
+  filePath: '/tmp/WiFiGhost'
 
 mac:
   oui: "6c:e9:07"
