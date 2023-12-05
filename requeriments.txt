@@ -1,5 +1,6 @@
 flask
 PyYAML
-csv
 re
 threading
+flask_socketio
+simple-websocket

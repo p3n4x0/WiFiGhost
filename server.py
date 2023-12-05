@@ -1,5 +1,5 @@
 #!/bin/python   
-from app import app, config
+from app import app, socketio, config
+from flask_socketio import SocketIO
 
-
-app.run(host=config['server']['host'], port=config['server']['port'])
+socketio.run(app, host=config['server']['host'], port=config['server']['port'])

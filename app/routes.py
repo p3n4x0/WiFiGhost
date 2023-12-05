@@ -5,7 +5,7 @@ from time import sleep
 from markupsafe import escape
 from werkzeug.utils import secure_filename
 from flask import request, jsonify, make_response, session
-from app import app, config
+from app import app, config, socketio
 import subprocess
 
 Essid = None
@@ -84,6 +84,7 @@ def readScan():
                                 }
                             scans.append(scan)
         print(scans) 
+        socketio.emit('data', scans)
         sleep(2)
     clean(path=path)
     #TODO:Actualizar con websockets

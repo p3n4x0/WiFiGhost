@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_socketio import SocketIO
 import yaml
 
 with open('config/config.yaml', 'r') as file:
@@ -35,6 +36,10 @@ print('''
 ''')
 
 app = Flask(__name__)
+
 app.secret_key = config['server']['secret']
+
+socketio = SocketIO(app)
+
 
 from app import routes
