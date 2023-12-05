@@ -43,5 +43,3 @@ build/
 
 # Flask configuration
 instance/
-flask_session/
-WiFiGhostDumpData/

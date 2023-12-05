@@ -1,5 +1,4 @@
 from flask import Flask
-from flask_session import Session
 import yaml
 
 with open('config/config.yaml', 'r') as file:
@@ -28,7 +27,7 @@ print('''
 |    \    \___|/ |     /___/|  |    |\    \ |    |    |    ||     /___/|  |    |\    \                                      
 |    |\     \    |     \____|\ |    | |    ||\    \  /    /||     \____|\ |    | |    |                                     
 |\ ___\|_____|   |____ '     /||____| |____|| \ ___\/___ / ||____ '     /||____| |____|                                     
-| |    |     |   |    /_____/ ||    | |    | \ |   ||   | / |    /_____/ ||    | |    |                                     
+| |    |     |   |    /_____/ ||    | |    | \ |   ||   | / |    /_____/ ||    | |    |                                      
  \|____|_____|   |____|     | /|____| |____|  \|___||___|/  |____|     | /|____| |____|                                     
     \(    )/       \( |_____|/   \(     )/      \(    )/      \( |_____|/   \(     )/                         by p3n4x0          
      '    '         '    )/       '     '        '    '        '    )/       '     '                                        
@@ -36,11 +35,6 @@ print('''
 ''')
 
 app = Flask(__name__)
-SESSION_TYPE = config['server']['sessionType']
-SECRET_KEY = config['server']['secret']
-app.config.from_object(__name__)
-
-
-Session(app)
+app.secret_key = config['server']['secret']
 
 from app import routes

@@ -6,7 +6,7 @@ server:
   filePath: '/tmp/WiFiGhost'
 
 mac:
-  oui: "6c:e9:07"
+  oui: "6c:e9:07" #Nokia
 
 # Configuracion de la base de datos
 database:
