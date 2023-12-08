@@ -1,6 +1,6 @@
+import yaml
 from flask import Flask
 from flask_socketio import SocketIO
-import yaml
 
 with open('config/config.yaml', 'r') as file:
     config = yaml.safe_load(file)
