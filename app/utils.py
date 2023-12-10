@@ -14,7 +14,7 @@ def is_mac_addres(mac):
 
 def waitHandshake():
     path = config['server']['filePath']
-    while scanAttack:
+    while 1:
         sleep(2)
         with open(f'{path}/tempScan') as scanFile:
             if "handshake" in scanFile.read():
