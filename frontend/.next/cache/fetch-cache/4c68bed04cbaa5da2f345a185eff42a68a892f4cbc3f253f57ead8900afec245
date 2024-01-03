@@ -1,0 +1,1 @@
+{"kind":"FETCH","data":{"headers":{"connection":"close","content-length":"20","content-type":"application/json","date":"Wed, 03 Jan 2024 18:17:59 GMT","server":"Werkzeug/2.2.2 Python/3.11.7"},"body":"eyJjYXJkcyI6IndsYW4wXG4ifQo=","status":200,"url":"http://127.0.0.1:8080/netcard"},"revalidate":31536000,"tags":[]}

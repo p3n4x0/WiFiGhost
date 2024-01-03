@@ -1,0 +1,73 @@
+
+export async function getNetcards() {
+    try {
+        const response = await fetch('http://127.0.0.1:8080/netcard');
+        const data = await response.json();
+        console.log
+        return data.cards;
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        throw error; // Puedes decidir si lanzar el error nuevamente o manejarlo de alguna manera específica.
+    }
+}
+
+
+export const setNetcardMon = async (netcard: string) => {
+    const response = await fetch('/netcard', {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ netcard }),
+    });
+    const data = await response.json();
+    return data;
+};
+
+export const stopNetcardMon = async () => {
+    const response = await fetch('/stop');
+    const data = await response.json();
+    return data;
+};
+
+export const startScan = async () => {
+    const response = await fetch('/scan');
+    const data = await response.json();
+    return data;
+};
+
+export const setTarget = async (bssid: string, essid: string, channel: string) => {
+    const response = await fetch('/target', {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ bssid, essid, channel }),
+    });
+    const data = await response.json();
+    return data;
+};
+
+export const startAttack = async (id: number, nPackets: string) => {
+    const response = await fetch(`/attack/${id}`, {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ n: nPackets }),
+    });
+    const data = await response.json();
+    return data;
+};
+
+export const startCrack = async (wordlist: string) => {
+    const response = await fetch(`/crack/${wordlist}`);
+    const data = await response.json();
+    return data;
+};
+
+export const getWordlists = async (list: string) => {
+    const response = await fetch(`/list/${list}`);
+    const data = await response.json();
+    return data.ls.split('\n').filter(Boolean);
+};
