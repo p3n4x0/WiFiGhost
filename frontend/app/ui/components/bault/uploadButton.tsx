@@ -3,11 +3,12 @@ import { Button } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 interface FileUploadButtonProps {
-  onUploadSuccess: (updatedWordlists: React.SetStateAction<{ id: number; name: string; }[]>) => void;
-  wordlists: { id: number; name: string; }[];
+  onUploadSuccess: (updatedList: React.SetStateAction<{ id: number; name: string; }[]>) => void;
+  list: { id: number; name: string; }[];
+  type: string
 }
 
-const FileUploadButton: React.FC<FileUploadButtonProps> = ({ onUploadSuccess, wordlists }) => {
+const FileUploadButton: React.FC<FileUploadButtonProps> = ({ onUploadSuccess, list, type }) => {
 
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -16,16 +17,16 @@ const FileUploadButton: React.FC<FileUploadButtonProps> = ({ onUploadSuccess, wo
         // Simulación de la carga exitosa
         // Aquí deberías realizar la lógica de carga real
 
-        // Asumiendo que las wordlists se reciben del backend después de la carga
-        const updatedWordlists: { id: number; name: string; }[] = [
-          ...wordlists,
-          { id: wordlists.length + 1, name: file.name }, // Nueva wordlist agregada después de la carga
+        // Asumiendo que las list se reciben del backend después de la carga
+        const updatedList: { id: number; name: string; }[] = [
+          ...list,
+          { id: list.length + 1, name: file.name }, // Nueva wordlist agregada después de la carga
         ];
 
-        // Devolver las wordlists actualizadas al componente padre
-        onUploadSuccess(updatedWordlists);
+        // Devolver las list actualizadas al componente padre
+        onUploadSuccess(updatedList);
       } catch (error) {
-        console.error('Error al subir la wordlist:', error);
+        console.error('Error al subir la lista:', error);
       }
     }
   };
@@ -45,7 +46,7 @@ const FileUploadButton: React.FC<FileUploadButtonProps> = ({ onUploadSuccess, wo
             onChange={handleFileChange}
             style={{ display: 'none' }}
           />
-          Subir Wordlist
+          Subir {type}
         </Button>
       </label>
     </div>

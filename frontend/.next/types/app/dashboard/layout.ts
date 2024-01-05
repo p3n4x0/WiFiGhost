@@ -1,4 +1,4 @@
-// File: /home/p3n4x0/uni/tfg/frontend/app/dashboard/layout.tsx
+// File: /home/p3n4x0/uni/tfg/WiFiGhost/frontend/app/dashboard/layout.tsx
 import * as entry from '../../../../app/dashboard/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

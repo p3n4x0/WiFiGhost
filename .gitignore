@@ -43,3 +43,13 @@ build/
 
 # Flask configuration
 instance/
+
+# Next.js
+.next/
+node_modules/
+
+# Tailwind CSS
+tailwind.config.js
+
+# Other Next.js build artifacts
+out/

@@ -1,4 +1,4 @@
-// File: /home/p3n4x0/uni/tfg/frontend/app/dashboard/bault/page.tsx
+// File: /home/p3n4x0/uni/tfg/WiFiGhost/frontend/app/dashboard/bault/page.tsx
 import * as entry from '../../../../../app/dashboard/bault/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

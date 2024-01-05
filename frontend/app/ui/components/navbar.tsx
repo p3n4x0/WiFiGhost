@@ -18,7 +18,7 @@ export const NavbarComponent = () => {
     setShowAlert(true);
     setTimeout(() => {
       setShowAlert(false);
-    }, 3000);
+    }, 2500);
   };
 
   return (

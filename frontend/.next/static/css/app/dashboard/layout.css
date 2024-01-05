@@ -498,6 +498,12 @@ video {
 .pointer-events-none {
   pointer-events: none;
 }
+.pointer-events-auto {
+  pointer-events: auto;
+}
+.visible {
+  visibility: visible;
+}
 .fixed {
   position: fixed;
 }
@@ -520,6 +526,9 @@ video {
 .my-16 {
   margin-top: 4rem;
   margin-bottom: 4rem;
+}
+.mb-1 {
+  margin-bottom: 0.25rem;
 }
 .mb-2 {
   margin-bottom: 0.5rem;
@@ -554,6 +563,9 @@ video {
 .mr-8 {
   margin-right: 2rem;
 }
+.mt-1 {
+  margin-top: 0.25rem;
+}
 .mt-2 {
   margin-top: 0.5rem;
 }
@@ -563,11 +575,50 @@ video {
 .mt-6 {
   margin-top: 1.5rem;
 }
-.mb-1 {
-  margin-bottom: 0.25rem;
+.ml-1 {
+  margin-left: 0.25rem;
 }
-.mt-1 {
-  margin-top: 0.25rem;
+.ml-2 {
+  margin-left: 0.5rem;
+}
+.mr-2 {
+  margin-right: 0.5rem;
+}
+.mt-3 {
+  margin-top: 0.75rem;
+}
+.mt-8 {
+  margin-top: 2rem;
+}
+.ml-4 {
+  margin-left: 1rem;
+}
+.mb-64 {
+  margin-bottom: 16rem;
+}
+.mb-24 {
+  margin-bottom: 6rem;
+}
+.mb-16 {
+  margin-bottom: 4rem;
+}
+.mb-14 {
+  margin-bottom: 3.5rem;
+}
+.mb-10 {
+  margin-bottom: 2.5rem;
+}
+.mb-36 {
+  margin-bottom: 9rem;
+}
+.mb-48 {
+  margin-bottom: 12rem;
+}
+.mb-40 {
+  margin-bottom: 10rem;
+}
+.mt-40 {
+  margin-top: 10rem;
 }
 .inline-block {
   display: inline-block;
@@ -662,6 +713,12 @@ video {
 .gap-96 {
   gap: 24rem;
 }
+.gap-0 {
+  gap: 0px;
+}
+.gap-5 {
+  gap: 1.25rem;
+}
 .space-x-2 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 0;
   margin-right: calc(0.5rem * var(--tw-space-x-reverse));
@@ -672,11 +729,29 @@ video {
   margin-right: calc(1rem * var(--tw-space-x-reverse));
   margin-left: calc(1rem * calc(1 - var(--tw-space-x-reverse)));
 }
+.space-y-4 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(1rem * var(--tw-space-y-reverse));
+}
+.space-y-1 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(0.25rem * var(--tw-space-y-reverse));
+}
+.space-y-0 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(0px * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(0px * var(--tw-space-y-reverse));
+}
 .rounded-full {
   border-radius: 9999px;
 }
 .rounded-lg {
   border-radius: 0.5rem;
+}
+.rounded-xl {
+  border-radius: 0.75rem;
 }
 .border {
   border-width: 1px;
@@ -687,6 +762,18 @@ video {
 }
 .border-transparent {
   border-color: transparent;
+}
+.border-red-600 {
+  --tw-border-opacity: 1;
+  border-color: rgb(220 38 38 / var(--tw-border-opacity));
+}
+.border-green-500 {
+  --tw-border-opacity: 1;
+  border-color: rgb(34 197 94 / var(--tw-border-opacity));
+}
+.border-red-500 {
+  --tw-border-opacity: 1;
+  border-color: rgb(239 68 68 / var(--tw-border-opacity));
 }
 .bg-black {
   --tw-bg-opacity: 1;

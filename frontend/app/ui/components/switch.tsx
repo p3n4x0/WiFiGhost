@@ -46,7 +46,7 @@ const NetcardSwitches: React.FC<NetcardSwitchesProps> = ({ netcards, onNetcardCh
   }, [selectedNetcard]);
 
   return (
-    <div className="flex space-x-4">
+    <div className="flex space-x-4 ml-2 mt-2">
       <FormGroup>
         {netcards.map((netcard) => (
           <div key={netcard.id} className="flex items-center">

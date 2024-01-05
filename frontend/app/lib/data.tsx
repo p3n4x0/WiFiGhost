@@ -3,7 +3,7 @@ export async function getNetcards() {
     try {
         const response = await fetch('http://127.0.0.1:8080/netcard');
         const data = await response.json();
-        console.log
+        console.log(data)
         return data.cards;
     } catch (error) {
         console.error('Error fetching data:', error);
@@ -11,9 +11,8 @@ export async function getNetcards() {
     }
 }
 
-
 export const setNetcardMon = async (netcard: string) => {
-    const response = await fetch('/netcard', {
+    const response = await fetch('http://127.0.0.1:8080/netcard', {
         method: 'POST',
         headers: {
         'Content-Type': 'application/json',
@@ -21,23 +20,24 @@ export const setNetcardMon = async (netcard: string) => {
         body: JSON.stringify({ netcard }),
     });
     const data = await response.json();
+    console.log(data)
     return data;
 };
 
 export const stopNetcardMon = async () => {
-    const response = await fetch('/stop');
+    const response = await fetch('http://127.0.0.1:8080/stop');
     const data = await response.json();
     return data;
 };
 
 export const startScan = async () => {
-    const response = await fetch('/scan');
+    const response = await fetch('http://127.0.0.1:8080/scan');
     const data = await response.json();
     return data;
 };
 
 export const setTarget = async (bssid: string, essid: string, channel: string) => {
-    const response = await fetch('/target', {
+    const response = await fetch('http://127.0.0.1:8080/target', {
         method: 'POST',
         headers: {
         'Content-Type': 'application/json',
@@ -49,7 +49,7 @@ export const setTarget = async (bssid: string, essid: string, channel: string) =
 };
 
 export const startAttack = async (id: number, nPackets: string) => {
-    const response = await fetch(`/attack/${id}`, {
+    const response = await fetch(`http://127.0.0.1:8080/attack/${id}`, {
         method: 'POST',
         headers: {
         'Content-Type': 'application/json',
@@ -61,13 +61,25 @@ export const startAttack = async (id: number, nPackets: string) => {
 };
 
 export const startCrack = async (wordlist: string) => {
-    const response = await fetch(`/crack/${wordlist}`);
+    const response = await fetch(`http://127.0.0.1:8080/crack/${wordlist}`);
     const data = await response.json();
     return data;
 };
 
-export const getWordlists = async (list: string) => {
-    const response = await fetch(`/list/${list}`);
+export const getLists = async (list: string) => {
+    const response = await fetch(`http://127.0.0.1:8080/list/${list}`);
     const data = await response.json();
-    return data.ls.split('\n').filter(Boolean);
+    return data.ls
+};
+
+export const uploadFile = async (list: string, file: string) => {
+    const response = await fetch(`http://127.0.0.1:8080/list/${list}`{
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ file: file }),
+    });
+    const data = await response.json();
+    return data.ls
 };

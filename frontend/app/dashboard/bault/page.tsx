@@ -1,7 +1,7 @@
 "use client"
 import React from 'react';
 import KeyList from "@/app/ui/components/bault/keys";
-import Wordlists from "@/app/ui/components/bault/wordlists";
+import ListContainer from "@/app/ui/components/bault/listContainer";
 
 export default function Home() {
   const exampleKeys = [
@@ -10,15 +10,16 @@ export default function Home() {
     { id: 3, apName: 'WiFi Network 3', password: 'examplePassword3', bssid: 'pruebaBssid3' },
   ];
   return (
-    <div className="flex h-screen text-white ">
+    <div className="flex-1 flex min-h-screen text-white">
       {/* Sección de contraseñas */}
-      <div className="flex-1 flex items-center justify-center ml-8">
+      <div className="flex-1 flex items-center justify-center ml-8 mb-48">
         <KeyList keysInfo={exampleKeys} />
       </div>
 
       {/* Sección de wordlists y opción de subir */}
-      <div className="flex-1 flex flex-col items-center justify-center">
-        <Wordlists />
+      <div className="flex-1 flex flex-col items-center justify-center ml-4 mb-40">
+        <ListContainer type="Wordlist" />
+        <ListContainer type="FakeNets list" />
       </div>
     </div>
   );

@@ -39,11 +39,11 @@ export const PopoverComponent: React.FC<PopoverComponentProps> = ({ onCheckout }
   }, []);
 
   return (
-    <Popover className="dark:bg-neutral-900 dark:border-neutral-700 rounded-lg shadow-lg">
-      <Popover.Title className="text-white">Netcard Status</Popover.Title>
+    <Popover className="dark:bg-neutral-900 dark:border-neutral-700 shadow-lg">
+      <Popover.Title className="text-white flex justify-center">Netcard Status</Popover.Title>
       <NetcardSwitches netcards={netcards} onNetcardChange={handleNetcardChange} />
       <Popover.Container className='justify-center'>
-        <Button size="xs" onClick={handleCheckoutClick} className="bg-neutral-800 hover:bg-neutral-700 text-white font-semibold rounded-lg cursor-pointer focus:outline-none">
+        <Button size="xs" onClick={handleCheckoutClick} className="bg-neutral-800 hover:bg-neutral-700 text-white font-semibold rounded-lg cursor-pointer focus:outline-none mb-2">
           Checkout
         </Button>
       </Popover.Container>
