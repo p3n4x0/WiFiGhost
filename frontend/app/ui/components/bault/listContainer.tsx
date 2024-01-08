@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import List from "@/app/ui/components/bault/list";
 import FileUploadButton from "@/app/ui/components/bault/uploadButton";
+import { getLists } from '@/app/lib/data';
 
 interface ListContainerProps {
   type: string
@@ -15,9 +16,10 @@ const ListContainer: React.FC<ListContainerProps> = ({ type }) => {
     { id: 5, name: "Wordlist 2" },
     { id: 6, name: "Wordlist 3" },
   ]);
-
+  
   const handleListUploadSuccess = (updatedList: React.SetStateAction<{ id: number; name: string; }[]>) => {
     setList(updatedList);
+    getLists("fakeNetworks")
   };
 
   return (

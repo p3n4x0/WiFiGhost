@@ -4,7 +4,7 @@ import NetcardSwitches from './switch';
 import { useState, useEffect } from 'react';
 import WifiOffRounded from '@mui/icons-material/WifiOffRounded';
 import WifiRounded from '@mui/icons-material/WifiRounded';
-import { getNetcards } from '@/app/lib/data';
+import { getNetcards, init, setNetcardMon, stopNetcardMon } from '@/app/lib/data';
 
 interface PopoverComponentProps {
   onCheckout: (netcardSelected: string) => void;
@@ -17,9 +17,13 @@ export const PopoverComponent: React.FC<PopoverComponentProps> = ({ onCheckout }
     { id: 3, name: 'Netcard 3' },
     // Agrega más netcards según sea necesario
   ];
+  const test = () => {
+    getNetcards()
+
+    return netcards
+  }
   const [netcard, setNetcard] = useState('');
   const [netcardSelected, setNetcardSelected] = useState<string | null>(null);
-
   const handleNetcardChange = (netcardName: string) => {
     setNetcard(netcardName);
   };
@@ -27,7 +31,12 @@ export const PopoverComponent: React.FC<PopoverComponentProps> = ({ onCheckout }
   const handleCheckoutClick = () => {
     setNetcardSelected(netcard);
     onCheckout(netcard); // Pasa el valor al componente padre
-    // Aquí puedes realizar la petición al servidor con el valor de netcard
+    if(netcard){
+      setNetcardMon("wlan0")
+    }
+    else{
+      stopNetcardMon()
+    }
   };
 
   useEffect(() => {

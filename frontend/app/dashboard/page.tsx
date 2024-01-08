@@ -68,10 +68,8 @@ export default function Home() {
   const [isActivated, setActivated] = useState(0);
   const handleCrackExecution = (selectedHash: string, selectedWordlist: string) => {
     setActivated(3)
-    // Aquí deberías realizar la lógica de crackeo con los parámetros seleccionados
     console.log('Cracking with Hash:', selectedHash);
     console.log('Using Wordlist:', selectedWordlist);
-    // Realiza la lógica de conexión al backend o cualquier acción necesaria
   };
   return (
     <main>
