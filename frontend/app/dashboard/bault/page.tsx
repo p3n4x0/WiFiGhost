@@ -19,7 +19,7 @@ export default function Home() {
       {/* Sección de wordlists y opción de subir */}
       <div className="flex-1 flex flex-col items-center justify-center ml-4 mb-40">
         <ListContainer type="Wordlist" />
-        <ListContainer type="FakeNets list" />
+        <ListContainer type="FakeNetworks" />
       </div>
     </div>
   );

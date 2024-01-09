@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button, CircularProgress } from '@mui/material';
 import Pagination from '../pagination';
+import { deleteFile } from '@/app/lib/data';
 
 
 interface List {
@@ -32,6 +33,7 @@ const List: React.FC<ListProps> = ({ lists, onUploadSuccess, type }) => {
       setIsDeleting(true);
 
       try {
+        deleteFile(type, SelectedList.name)
         // Simulación de la eliminación exitosa
         // Aquí deberías realizar la lógica de eliminación real
 

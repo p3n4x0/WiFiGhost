@@ -16,7 +16,7 @@ const StepperComponent: React.FC<StepperProps> = ({ isActivated }) => {
   ];
 
   return (
-    <div className="bg-neutral-900 p-6 rounded-full shadow-lg h-half-screen mt-6 ml-8 mr-8">
+    <div className="bg-neutral-900 p-4 rounded-full shadow-lg h-half-screen mt-8 ml-8 mr-8">
       <Stepper alternativeLabel>
         {steps.map((step, index) => (
           <Step key={index}>

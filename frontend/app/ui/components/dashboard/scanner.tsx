@@ -69,7 +69,7 @@ const Scanner: React.FC<APListProps> = ({ scans, isActivated, setActivated }) =>
   const currentItems = scans.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
-    <div className="bg-neutral-900 p-6 rounded-lg shadow-lg h-half-screen mt-6 ml-8 mr-8">
+    <div className="bg-neutral-900 p-6 rounded-lg shadow-lg h-half-screen mt-8 ml-8 mr-8">
       <h2 className="text-white text-2xl font-bold mb-2">Scanner</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
         {currentItems.map((ap) => (

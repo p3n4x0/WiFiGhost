@@ -1,7 +1,6 @@
 import re
 import csv
 import subprocess
-from markupsafe import escape
 from time import sleep
 from app import config, socketio
 from app.routes import scanning, scanAttack
@@ -11,7 +10,7 @@ def ret(resp, status=200):
     return make_response(jsonify(resp), status)
 
 def req(req):
-    return escape(req.get_json())
+    return req.get_json()
 
 def is_mac_addres(mac):
     return bool(re.match('^\s*' + '[\:\-]'.join(['([0-9a-f]{2})'] * 6) + '\s*$', mac.lower()))

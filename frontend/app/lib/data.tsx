@@ -31,13 +31,13 @@ export const setNetcardMon = async (netcard: string) => {
             'Content-Type': 'application/json',
             'Cookie': document.cookie,
         },
-        body: JSON.stringify({"netcard": netcard}),
-    });
+        body: JSON.stringify({netcard: netcard}),
+    })
 
-    const data = await response.json();
-    cookieUpdate(response);
-    console.log(data);
-};
+    const data = await response.json()
+    cookieUpdate(response)
+    console.log(data)
+}
 
 
 export const stopNetcardMon = async () => {
@@ -60,7 +60,7 @@ export const setTarget = async (bssid: string, essid: string, channel: string) =
         headers: {
         'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ bssid, essid, channel }),
+        body: JSON.stringify({ "bssid": bssid, "essid": essid, "channel": channel }),
     })
     const data = await response.json()
     cookieUpdate(response)
@@ -73,7 +73,7 @@ export const startAttack = async (id: number, nPackets: string) => {
         headers: {
         'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ n: nPackets }),
+        body: JSON.stringify({ "n": nPackets }),
     })
     const data = await response.json()
     cookieUpdate(response)
@@ -87,23 +87,37 @@ export const startCrack = async (wordlist: string) => {
     console.log(data)
 }
 
-export const getLists = async (list: string) => {
+export const getList = async (list: string) => {
     const response = await fetch(`http://127.0.0.1:8080/list/${list}`)
     const data = await response.json()
     cookieUpdate(response)
     console.log(data.ls)
-    return data.ls
 }
 
-export const uploadFile = async (list: string, file: string) => {
+export const uploadFile = async (list: string, file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+  
     const response = await fetch(`http://127.0.0.1:8080/list/${list}`, {
+      method: 'POST',
+      body: formData,
+    })
+  
+    const data = await response.json()
+    cookieUpdate(response)
+    console.log(data.ls)
+}
+
+export const deleteFile = async (list: string, file: string) => {  
+    const response = await fetch(`http://127.0.0.1:8080/deleteFile/${list}`, {
         method: 'POST',
         headers: {
         'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ file: file }),
+        body: JSON.stringify({ "file": file }),
     })
+  
     const data = await response.json()
     cookieUpdate(response)
-    return data.ls
+    console.log(data.status)
 }

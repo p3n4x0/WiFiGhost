@@ -28,9 +28,8 @@ def getNetcardMon():
 
 @app.post('/netcard')
 def setNetcardMon():
-    request.get_json()
     data = req(request)
-    netcard = data.get('netcard', '')
+    netcard = escape(data.get('netcard', ''))
     netcardMon = netcard + "mon"
     session["netcardMon"] = netcardMon
     mac = f"{config['mac']['oui']}:12:8c:b6"
@@ -77,16 +76,16 @@ def scan():
 @app.post('/target')
 def target():
     data = req(request)
-    session['bssid'] = data.get('bssid')
-    session['essid'] = data.get('essid')
-    session['channel'] = data.get('channel')
+    session['bssid'] = escape(data.get('bssid', ''))
+    session['essid'] = escape(data.get('essid', ''))
+    session['channel'] = escape(data.get('channel', ''))
     #TODO: Plantear target... aislado o conjunto??
     return ret({"status":"OK"})
 
 @app.post('/attack/<int:id>')
 def attack(id):
     data = req(request)
-    nPackets = data.get('n')
+    nPackets = escape(data.get('n'))
     netcardMon = session.get('netcardMon')
     bssid = session.get('bssid')
     essid = session.get('essid')
@@ -110,7 +109,7 @@ def attack(id):
             attack = f'mdk3 a -a {bssid} {netcardMon}'
             pass
         case 2: #Beacon Flood Mode Attack
-            fakeNets = data.get('fn')
+            fakeNets = escape(data.get('fn', ''))
             attack = f'mdk3 b -f {fakeNets} -a -s 1000 -c {channel} {netcardMon}'
             pass
         case 3: #Disassociation Amok Mode Attack
@@ -200,6 +199,16 @@ def setList(list):
     f.save(f'{list}/{secure_filename(f.filename)}')
     
     return ret({"status":f"saved on {list}/{secure_filename(f.filename)}"})
+
+@app.post('/deleteFile/<string:list>')
+def deleteFile(list):
+    list = escape(list)
+    data = req(request)
+    f = escape(data.get('file', ''))
+    delete = f'rm {list}/{f}'
+    subprocess.run(delete, check=True, capture_output=True, text=True, shell=True)
+
+    return ret({"status":f"deleted on {list}/{secure_filename(f)}"})
 
 @app.get('/list/<string:list>')
 def getLists(list):

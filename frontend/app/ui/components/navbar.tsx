@@ -26,7 +26,7 @@ export const NavbarComponent = () => {
       <Navbar.Container className="flex items-center justify-between bg-neutral-900 mt-2 rounded-full">
         <Navbar.Container
           tag="ul"
-          className="lg:flex hidden items-center justify-between gap-1 mt-1 mb-1"
+          className="lg:flex hidden items-center justify-between mt-1 mb-1"
         >
           <Link href="/dashboard/bault" className='rounded-full px-5 py-2 ml-3 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30 hover:scale-110'>
             <PolicyRoundedIcon className="text-white"/>
@@ -35,16 +35,16 @@ export const NavbarComponent = () => {
 
         <Navbar.Container
           tag="ul"
-          className="lg:flex hidden items-center justify-between gap-1 mt-1 mb-1"
+          className="lg:flex hidden items-center justify-between mt-1 mb-1"
         >
-          <Link href="/dashboard" className='rounded-full px-5 py-2 ml-3 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30 hover:scale-110'>
+          <Link href="/dashboard" className='rounded-full px-5 py-2 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30 hover:scale-110'>
             <HomeRoundedIcon className="text-white"/>
           </Link>
         </Navbar.Container>
         
         <Navbar.Container
           tag="ul"
-          className="lg:flex hidden items-center justify-between gap-1 mt-1 mb-1"
+          className="lg:flex hidden items-center justify-between mt-1 mb-1"
         >
           <PopoverComponent onCheckout={handleCheckout} />
           {showAlert && (

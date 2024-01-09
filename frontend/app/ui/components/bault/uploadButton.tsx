@@ -1,6 +1,7 @@
 import React, { ChangeEvent } from 'react';
 import { Button } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import { uploadFile } from '@/app/lib/data';
 
 interface FileUploadButtonProps {
   onUploadSuccess: (updatedList: React.SetStateAction<{ id: number; name: string; }[]>) => void;
@@ -16,7 +17,7 @@ const FileUploadButton: React.FC<FileUploadButtonProps> = ({ onUploadSuccess, li
       try {
         // Simulación de la carga exitosa
         // Aquí deberías realizar la lógica de carga real
-
+        uploadFile(type,file)
         // Asumiendo que las list se reciben del backend después de la carga
         const updatedList: { id: number; name: string; }[] = [
           ...list,
