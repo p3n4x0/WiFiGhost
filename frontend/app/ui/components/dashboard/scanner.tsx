@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, CircularProgress, Modal} from '@mui/material';
+import { Button, CircularProgress, FormControl, InputLabel, MenuItem, Modal, Select} from '@mui/material';
 import AttackSelector from './attacks';
 import Pagination from '../pagination';
 
@@ -20,8 +20,11 @@ interface APListProps {
 const Scanner: React.FC<APListProps> = ({ scans, isActivated, setActivated }) => {
   const [selectedAP, setSelectedAP] = useState<ScanInfo | null>(null);
   const [isFetching, setIsFetching] = useState(false);
-  const [attack, setAttack] = useState<string | null>(null);
+  const [attack, setAttack] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [selectedNumPackets, setSelectedNumPackets] = useState(0);
+  const [selectedFakeNetwork, setSelectedFakeNetwork] = useState<string | null>(null);
+
   // Lógica de paginación
   const [page, setPage] = useState(1);
   const itemsPerPage = 6;
@@ -50,10 +53,6 @@ const Scanner: React.FC<APListProps> = ({ scans, isActivated, setActivated }) =>
 
   const handleChangePage = (event: React.ChangeEvent<unknown>, newPage: number) => {
     setPage(newPage);
-  };
-
-  const handleSelectAttack = (attack: string) => {
-    setAttack(attack);
   };
 
   const handleShowClientsModal = () => {
@@ -118,14 +117,60 @@ const Scanner: React.FC<APListProps> = ({ scans, isActivated, setActivated }) =>
       {selectedAP && (
         <>
           <div>
-            <AttackSelector apType={selectedAP.type} clients={selectedAP.clients.length} onSelectAttack={handleSelectAttack} />
+            <AttackSelector apType={selectedAP.type} clients={selectedAP.clients.length} selectedAttack={attack} onSelectAttack={setAttack} />
           </div>
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-6">
+            {attack === 0 && (
+              <FormControl className="min-w-[200px]">
+                <InputLabel
+                  id="numPacketsLabel"
+                  className={`text-white ${selectedNumPackets ? 'transform translate-y-[-130%] scale-75' : ''}`}
+                >
+                  Num Packets:
+                </InputLabel>
+                <Select
+                  labelId="numPacketsLabel"
+                  id="numPacketsSelect"
+                  value={selectedNumPackets ? selectedNumPackets : ''}
+                  label="Num Packets"
+                  onChange={(e) => setSelectedNumPackets(e.target.value as number)}
+                  className="text-white"
+                >
+                  {/* Aquí deberías mapear las opciones disponibles de Fake Networks */}
+                  <MenuItem value="10">10</MenuItem>
+                  <MenuItem value="15">15</MenuItem>
+                  <MenuItem value="20">20</MenuItem>
+                  <MenuItem value="30">30</MenuItem>
+                </Select>
+              </FormControl>
+            )}
+            {attack === 2 && (
+              <FormControl className="min-w-[200px]">
+                <InputLabel
+                  id="fakeNetworkLabel"
+                  className={`text-white ${selectedFakeNetwork ? 'transform translate-y-[-130%] scale-75' : ''}`}
+                >
+                  Fake Network:
+                </InputLabel>
+                <Select
+                  labelId="fakeNetworkLabel"
+                  id="fakeNetworkSelect"
+                  value={selectedFakeNetwork ? selectedFakeNetwork : ''}
+                  label="Fake Network"
+                  onChange={(e) => setSelectedFakeNetwork(e.target.value as string)}
+                  className="text-white"
+                >
+                  {/* Aquí deberías mapear las opciones disponibles de Fake Networks */}
+                  <MenuItem value="fakeNetwork1">Fake Network 1</MenuItem>
+                  <MenuItem value="fakeNetwork2">Fake Network 2</MenuItem>
+                </Select>
+              </FormControl>
+            )}
             <Button
               variant="contained"
               color="primary"
               onClick={handleAttackClick}
-              disabled={isFetching}
+              disabled={attack === null || (attack === 0 && !selectedNumPackets) || (attack === 2 && !selectedFakeNetwork)}
               className="bg-neutral-800"
             >
               {isFetching ? <CircularProgress size={20} color="inherit" /> : 'Attack'}

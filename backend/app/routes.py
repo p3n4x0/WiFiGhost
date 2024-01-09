@@ -85,7 +85,6 @@ def target():
 @app.post('/attack/<int:id>')
 def attack(id):
     data = req(request)
-    nPackets = escape(data.get('n'))
     netcardMon = session.get('netcardMon')
     bssid = session.get('bssid')
     essid = session.get('essid')
@@ -103,6 +102,7 @@ def attack(id):
     match id:
         #WPA/WPA2 With Clients
         case 0: #Deauthentication
+            nPackets = escape(data.get('n'))
             attack = f'aireplay-ng -0 {nPackets} -a {bssid} {netcardMon}'
             pass
         case 1: #Fake DoS Attack
