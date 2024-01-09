@@ -1,6 +1,5 @@
 "use client"
 import { Navbar } from "keep-react"
-import Image from "next/image"
 import { useState } from 'react';
 import { PopoverComponent } from './netcard';
 import { Alert } from '@mui/material';

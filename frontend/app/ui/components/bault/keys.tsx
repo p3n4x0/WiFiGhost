@@ -1,7 +1,8 @@
-// keys.tsx
 import React, { useState } from 'react';
 import Pagination from '../pagination';
-
+import { Alert, IconButton, Tooltip } from '@mui/material';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 interface KeyInfo {
   id: number;
@@ -16,6 +17,7 @@ interface KeyListProps {
 
 const KeyList: React.FC<KeyListProps> = ({ keysInfo }) => {
   const [selectedKey, setSelectedKey] = useState<KeyInfo | null>(null);
+  const [showAlert, setShowAlert] = useState(false);
   // Lógica de paginación
   const [page, setPage] = useState(1);
   const itemsPerPage = 6;
@@ -25,6 +27,13 @@ const KeyList: React.FC<KeyListProps> = ({ keysInfo }) => {
   const handleKeyClick = (key: KeyInfo) => {
     // Deseleccionar la clave si ya estaba seleccionada
     setSelectedKey((prevKey) => (prevKey === key ? null : key));
+  };
+
+  const handleCopyToClipboard = () => {
+    setShowAlert(true);
+    setTimeout(() => {
+      setShowAlert(false);
+    }, 1000);
   };
 
   const handleChangePage = (event: React.ChangeEvent<unknown>, newPage: number) => {
@@ -46,7 +55,23 @@ const KeyList: React.FC<KeyListProps> = ({ keysInfo }) => {
               selectedKey === key ? 'bg-neutral-600' : 'bg-neutral-800 hover:bg-neutral-700'
             } transition duration-300`}
           >
-            <h3 className="text-white text-lg font-semibold mb-2">{key.apName}, {key.bssid}</h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-white text-lg font-semibold">{key.apName}, {key.bssid}</h3>
+              {selectedKey === key && (
+                <CopyToClipboard text={key.password} onCopy={handleCopyToClipboard}>
+                  <Tooltip title="Copy Password to Clipboard" placement='top'>
+                    <IconButton size="small" className='bg-white'>
+                      <ContentCopyIcon />
+                    </IconButton>
+                  </Tooltip>
+                </CopyToClipboard>
+              )}
+              {showAlert && (
+                <Alert severity="success" sx={{ position: 'fixed', bottom: 16, left: 16 }}>
+                  Copied to Clipboard
+                </Alert>
+              )}
+            </div>
             <p className={selectedKey === key ? 'text-white' : 'text-gray-400'}>
               {selectedKey === key ? `Password: ${key.password}` : 'Click to reveal password'}
             </p>
@@ -54,7 +79,7 @@ const KeyList: React.FC<KeyListProps> = ({ keysInfo }) => {
         ))}
       </div>
       <Pagination totalItems={totalItems} itemsPerPage={itemsPerPage} page={page} onChangePage={handleChangePage} showPagination={showPagination} />
-      </div>
+    </div>
   );
 };
 
