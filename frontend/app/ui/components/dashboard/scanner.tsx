@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button, CircularProgress, FormControl, InputLabel, MenuItem, Modal, Select} from '@mui/material';
 import AttackSelector from './attacks';
 import Pagination from '../pagination';
+import { setTarget } from '@/app/lib/data';
 
 interface ScanInfo {
   bssidStation: string;
@@ -31,9 +32,10 @@ const Scanner: React.FC<APListProps> = ({ scans, isActivated, setActivated }) =>
   const totalItems = scans.length;
   const showPagination = totalItems > itemsPerPage;
 
-  const handleAPClick = (ap: ScanInfo) => {
+  const handleAPClick = async (ap: ScanInfo) => {
     setSelectedAP((prevAP) => (prevAP === ap ? null : ap));
-    setActivated((prevActivated) => (selectedAP === ap ? 0 : 1));
+    setActivated(() => (selectedAP === ap ? 0 : 1));
+    if (selectedAP !== ap) await setTarget(ap.bssidStation, ap.essidStation, ap.channelStation)
   };
 
   const handleAttackClick = async () => {

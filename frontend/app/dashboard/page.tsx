@@ -66,15 +66,10 @@ const sampleScans = [
 
 export default function Home() {
   const [isActivated, setActivated] = useState(0);
-  const handleCrackExecution = (selectedHash: string, selectedWordlist: string) => {
-    setActivated(3)
-    console.log('Cracking with Hash:', selectedHash);
-    console.log('Using Wordlist:', selectedWordlist);
-  };
   return (
     <main>
       <Scanner scans={sampleScans} isActivated={isActivated} setActivated={setActivated} />
-      <Cracker setActivated={setActivated} handleCrackExecution={handleCrackExecution}/>
+      <Cracker setActivated={setActivated}/>
       <Stepper isActivated={isActivated}/>
     </main>
   );

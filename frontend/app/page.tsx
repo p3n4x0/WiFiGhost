@@ -1,6 +1,7 @@
 "use client"
 import Link from 'next/link'
 import Image from 'next/image'
+import { init } from './lib/data'
 
 export default function Home() {
   return (
@@ -27,7 +28,7 @@ export default function Home() {
         <h1 className="text-4xl font-bold mb-20 transition">
           ¡Bienvenido a WiFiGhost!
         </h1>
-        <Link href="/dashboard">
+        <Link href="/dashboard" onClick={() => init()}>
           <img
             src="/logo.png" // Reemplaza con la ruta de tu imagen
             alt="WiFiGhost"

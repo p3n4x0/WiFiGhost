@@ -17,9 +17,9 @@ export const PopoverComponent: React.FC<PopoverComponentProps> = ({ onCheckout }
     { id: 3, name: 'Netcard 3' },
     // Agrega más netcards según sea necesario
   ];
-  const test = () => {
-    getNetcards()
-
+  const test = async () => {
+    const t = await getNetcards()
+    
     return netcards
   }
   const [netcard, setNetcard] = useState('');
@@ -29,14 +29,14 @@ export const PopoverComponent: React.FC<PopoverComponentProps> = ({ onCheckout }
   };
 
   const handleCheckoutClick = () => {
-    setNetcardSelected(netcard);
-    onCheckout(netcard); // Pasa el valor al componente padre
     if(netcard){
       setNetcardMon("wlan0")
     }
     else{
       stopNetcardMon()
     }
+    setNetcardSelected(netcard);
+    onCheckout(netcard); 
   };
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export const PopoverComponent: React.FC<PopoverComponentProps> = ({ onCheckout }
         </Button>
       </Popover.Container>
       <Popover.Action>
-        <IconButton className='rounded-full px-5 py-2 mr-3 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30 hover:scale-110'>
+        <IconButton className='rounded-full px-5 py-2 mr-3 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30 hover:scale-110' onClick={test}>
           {netcardSelected ? <WifiRounded className='text-green-500'/> : <WifiOffRounded className='text-red-500'/>}
         </IconButton>
       </Popover.Action>

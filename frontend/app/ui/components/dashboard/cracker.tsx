@@ -1,17 +1,24 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import SimpleDialog, { SimpleDialogProps } from './dialog';
+import { startCrack } from '@/app/lib/data';
 
 interface CrackerProps {
   setActivated: React.Dispatch<React.SetStateAction<number>>;
-  handleCrackExecution: (selectedHash: string, selectedWordlist: string) => void
 }
 
-const Cracker: React.FC<CrackerProps> = ({setActivated, handleCrackExecution}) => {
+const Cracker: React.FC<CrackerProps> = ({setActivated, }) => {
   const [wordlistSelected, setWordlistSelected] = useState<string | null>(null);
   const [hashSelected, setHashSelected] = useState<string | null>(null);
   const [openWordlistDialog, setOpenWordlistDialog] = useState(false);
   const [openHashDialog, setOpenHashDialog] = useState(false);
+
+  const handleCrackExecution = (selectedHash: string, selectedWordlist: string) => {
+    setActivated(3)
+    console.log('Cracking with Hash:', selectedHash);
+    console.log('Using Wordlist:', selectedWordlist);
+    //startCrack(selectedWordlist, selectedHash)
+  };
 
   const handleWordlistClose = (value: string) => {
     setWordlistSelected(value);
