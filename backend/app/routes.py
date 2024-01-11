@@ -86,7 +86,7 @@ def target():
     bssid = escape(data.get('bssid', ''))
     essid = escape(data.get('essid', ''))
     channel = escape(data.get('channel', ''))
-    #TODO: Plantear target... aislado o conjunto??
+    
     return ret({"status":"OK"})
 
 @app.post('/attack/<int:id>')

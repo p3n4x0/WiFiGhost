@@ -44,7 +44,6 @@ const AttackSelector: React.FC<AttackSelectorProps> = ({ apType, clients, select
 
   const handleSelectAttack = (index: number) => {
     if (selectedAttack === index) {
-      // Si el mismo índice ya está seleccionado, deselecciónalo
       onSelectAttack(null);
     } else {
       onSelectAttack(index);

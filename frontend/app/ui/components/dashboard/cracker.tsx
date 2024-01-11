@@ -13,11 +13,12 @@ const Cracker: React.FC<CrackerProps> = ({setActivated, }) => {
   const [openWordlistDialog, setOpenWordlistDialog] = useState(false);
   const [openHashDialog, setOpenHashDialog] = useState(false);
 
-  const handleCrackExecution = (selectedHash: string, selectedWordlist: string) => {
+  const handleCrackExecution = async (selectedHash: string, selectedWordlist: string) => {
     setActivated(3)
+    //startCrack("pass", "dumpDataAttack-02.cap")
+    startCrack(selectedWordlist, selectedHash)
     console.log('Cracking with Hash:', selectedHash);
     console.log('Using Wordlist:', selectedWordlist);
-    //startCrack(selectedWordlist, selectedHash)
   };
 
   const handleWordlistClose = (value: string) => {

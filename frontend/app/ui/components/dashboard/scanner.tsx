@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button, CircularProgress, FormControl, InputLabel, MenuItem, Modal, Select} from '@mui/material';
 import AttackSelector from './attacks';
 import Pagination from '../pagination';
-import { setTarget } from '@/app/lib/data';
+import { setTarget, startAttack, startAttack0, startAttack2 } from '@/app/lib/data';
 
 interface ScanInfo {
   bssidStation: string;
@@ -24,7 +24,7 @@ const Scanner: React.FC<APListProps> = ({ scans, isActivated, setActivated }) =>
   const [attack, setAttack] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedNumPackets, setSelectedNumPackets] = useState(0);
-  const [selectedFakeNetwork, setSelectedFakeNetwork] = useState<string | null>(null);
+  const [selectedFakeNetworks, setselectedFakeNetworks] = useState('');
 
   // Lógica de paginación
   const [page, setPage] = useState(1);
@@ -39,10 +39,12 @@ const Scanner: React.FC<APListProps> = ({ scans, isActivated, setActivated }) =>
   };
 
   const handleAttackClick = async () => {
-    if (selectedAP && attack) {
+    if (selectedAP && attack || selectedAP && attack === 0) {
       setIsFetching(true);
       try {
-        // Aquí deberías realizar la lógica de conexión real al backend
+        if (attack === 0) startAttack0(attack, selectedNumPackets)
+        else if (attack === 2) startAttack2(attack, selectedFakeNetworks)
+        else startAttack(attack)
         console.log(`Status: ${selectedAP.essidStation} | ${attack}`);
       } catch (error) {
         console.error('Error al conectarse al AP:', error);
@@ -150,16 +152,16 @@ const Scanner: React.FC<APListProps> = ({ scans, isActivated, setActivated }) =>
               <FormControl className="min-w-[200px]">
                 <InputLabel
                   id="fakeNetworkLabel"
-                  className={`text-white ${selectedFakeNetwork ? 'transform translate-y-[-130%] scale-75' : ''}`}
+                  className={`text-white ${selectedFakeNetworks ? 'transform translate-y-[-130%] scale-75' : ''}`}
                 >
                   Fake Network:
                 </InputLabel>
                 <Select
                   labelId="fakeNetworkLabel"
                   id="fakeNetworkSelect"
-                  value={selectedFakeNetwork ? selectedFakeNetwork : ''}
+                  value={selectedFakeNetworks ? selectedFakeNetworks : ''}
                   label="Fake Network"
-                  onChange={(e) => setSelectedFakeNetwork(e.target.value as string)}
+                  onChange={(e) => setselectedFakeNetworks(e.target.value as string)}
                   className="text-white"
                 >
                   {/* Aquí deberías mapear las opciones disponibles de Fake Networks */}
@@ -171,8 +173,8 @@ const Scanner: React.FC<APListProps> = ({ scans, isActivated, setActivated }) =>
             <Button
               variant="contained"
               color="primary"
+              disabled={attack === null || (attack === 0 && !selectedNumPackets) || (attack === 2 && !selectedFakeNetworks)}
               onClick={handleAttackClick}
-              disabled={attack === null || (attack === 0 && !selectedNumPackets) || (attack === 2 && !selectedFakeNetwork)}
               className="bg-neutral-800"
             >
               {isFetching ? <CircularProgress size={20} color="inherit" /> : 'Attack'}

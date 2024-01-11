@@ -74,7 +74,23 @@ export const setTarget = async (bssid: string, essid: string, channel: number) =
     }
 }
 
-export const startAttack = async (id: number, nPackets: string) => {
+export const startAttack = async (id: number) => {
+    try {
+        const response = await fetch(`http://127.0.0.1:8080/attack/${id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        const data = await response.json();
+        console.log(data);
+    } catch (error) {
+        console.error('Error in startAttack:', error);
+    }
+}
+
+export const startAttack0 = async (id: number, nPackets: number) => {
     try {
         const response = await fetch(`http://127.0.0.1:8080/attack/${id}`, {
             method: 'POST',
@@ -82,6 +98,23 @@ export const startAttack = async (id: number, nPackets: string) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ "n": nPackets }),
+        });
+
+        const data = await response.json();
+        console.log(data);
+    } catch (error) {
+        console.error('Error in startAttack:', error);
+    }
+}
+
+export const startAttack2 = async (id: number, fakeNets: string) => {
+    try {
+        const response = await fetch(`http://127.0.0.1:8080/attack/${id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ "fn": fakeNets }),
         });
 
         const data = await response.json();
