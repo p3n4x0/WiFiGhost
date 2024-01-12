@@ -5,7 +5,6 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 interface KeyInfo {
-  id: number;
   apName: string;
   bssid: string;
   password: string;
@@ -26,7 +25,7 @@ const KeyList: React.FC<KeyListProps> = ({ keysInfo }) => {
 
   const handleKeyClick = (key: KeyInfo) => {
     // Deseleccionar la clave si ya estaba seleccionada
-    setSelectedKey((prevKey) => (prevKey === key ? null : key));
+    setSelectedKey((prevKey) => (prevKey === key || key.password === null ? null : key));
   };
 
   const handleCopyToClipboard = () => {
@@ -47,9 +46,9 @@ const KeyList: React.FC<KeyListProps> = ({ keysInfo }) => {
     <div className="bg-neutral-900 p-6 rounded-lg shadow-lg">
       <h2 className="text-white text-2xl font-bold mb-4">Wi-Fi Keys</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {keysInfo.slice(startIndex, endIndex).map((key) => (
+        {keysInfo.slice(startIndex, endIndex).map((key, index) => (
           <div
-            key={key.id}
+            key={index}
             onClick={() => handleKeyClick(key)}
             className={`cursor-pointer p-4 rounded-lg ${
               selectedKey === key ? 'bg-neutral-600' : 'bg-neutral-800 hover:bg-neutral-700'
@@ -73,7 +72,9 @@ const KeyList: React.FC<KeyListProps> = ({ keysInfo }) => {
               )}
             </div>
             <p className={selectedKey === key ? 'text-white' : 'text-gray-400'}>
-              {selectedKey === key ? `Password: ${key.password}` : 'Click to reveal password'}
+              {selectedKey === key ? 
+                `Password: ${key.password}` : key.password !== null ? 
+                  'Click to reveal password': ''}
             </p>
           </div>
         ))}

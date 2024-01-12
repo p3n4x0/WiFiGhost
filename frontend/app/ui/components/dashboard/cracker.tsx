@@ -1,36 +1,40 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import SimpleDialog, { SimpleDialogProps } from './dialog';
-import { startCrack } from '@/app/lib/data';
+import SimpleDialog from './dialog';
+import { fetchList, startCrack } from '@/app/lib/data';
 
 interface CrackerProps {
   setActivated: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const Cracker: React.FC<CrackerProps> = ({setActivated, }) => {
-  const [wordlistSelected, setWordlistSelected] = useState<string | null>(null);
-  const [hashSelected, setHashSelected] = useState<string | null>(null);
-  const [openWordlistDialog, setOpenWordlistDialog] = useState(false);
-  const [openHashDialog, setOpenHashDialog] = useState(false);
+  const [wordlists, setWordlists] = useState<string[]>([])
+  const [hashes, setHashes] = useState<string[]>([])
+  const [wordlistSelected, setWordlistSelected] = useState<string | null>(null)
+  const [hashSelected, setHashSelected] = useState<string | null>(null)
+  const [openWordlistDialog, setOpenWordlistDialog] = useState(false)
+  const [openHashDialog, setOpenHashDialog] = useState(false)
 
   const handleCrackExecution = async (selectedHash: string, selectedWordlist: string) => {
     setActivated(3)
-    //startCrack("pass", "dumpDataAttack-02.cap")
     startCrack(selectedWordlist, selectedHash)
-    console.log('Cracking with Hash:', selectedHash);
-    console.log('Using Wordlist:', selectedWordlist);
   };
 
   const handleWordlistClose = (value: string) => {
-    setWordlistSelected(value);
-    setOpenWordlistDialog(false);
+    setWordlistSelected(value)
+    setOpenWordlistDialog(false)
   };
 
   const handleHashClose = (value: string) => {
-    setHashSelected(value);
-    setOpenHashDialog(false);
-    setActivated((prevActivated) => (value ? 2 : prevActivated));
-  };
+    setHashSelected(value)
+    setOpenHashDialog(false)
+    setActivated((prevActivated) => (value ? 2 : prevActivated))
+  }
+
+  useEffect(() => {
+    fetchList(setWordlists, "Wordlist")
+    fetchList(setHashes, "passDB")
+  }, [])
 
   return (
     <div className='bg-neutral-900 p-6 rounded-lg shadow-lg h-half-screen mt-6 ml-8 mr-8'>
@@ -50,10 +54,11 @@ const Cracker: React.FC<CrackerProps> = ({setActivated, }) => {
             {wordlistSelected ? `Wordlist: ${wordlistSelected}` : 'Select Wordlist'}
           </div>
           <SimpleDialog
+            title="Select Wordlist"
             open={openWordlistDialog}
             selectedValue={wordlistSelected || ''}
             onClose={handleWordlistClose}
-            options={['Wordlist1', 'Wordlist2', 'Wordlist3']}
+            options={wordlists}
           />
         </div>
 
@@ -73,10 +78,11 @@ const Cracker: React.FC<CrackerProps> = ({setActivated, }) => {
             {hashSelected ? `Hash: ${hashSelected}` : 'Select Hash'}
           </div>
           <SimpleDialog
+            title="Select Hash"
             open={openHashDialog}
             selectedValue={hashSelected || ''}
             onClose={handleHashClose}
-            options={['Hash1', 'Hash2', 'Hash3']}
+            options={hashes}
           />
         </div>
 

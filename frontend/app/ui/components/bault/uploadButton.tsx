@@ -4,12 +4,12 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { uploadFile } from '@/app/lib/data';
 
 interface FileUploadButtonProps {
-  onUploadSuccess: (updatedList: React.SetStateAction<{ id: number; name: string; }[]>) => void;
-  list: { id: number; name: string; }[];
+  onUploadSuccess: (updatedList: string[]) => void;
+  lists: string[];
   type: string
 }
 
-const FileUploadButton: React.FC<FileUploadButtonProps> = ({ onUploadSuccess, list, type }) => {
+const FileUploadButton: React.FC<FileUploadButtonProps> = ({ onUploadSuccess, lists, type }) => {
 
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -19,10 +19,7 @@ const FileUploadButton: React.FC<FileUploadButtonProps> = ({ onUploadSuccess, li
         // Aquí deberías realizar la lógica de carga real
         uploadFile(type,file)
         // Asumiendo que las list se reciben del backend después de la carga
-        const updatedList: { id: number; name: string; }[] = [
-          ...list,
-          { id: list.length + 1, name: file.name }, // Nueva wordlist agregada después de la carga
-        ];
+        const updatedList: string[] = [...lists, file.name];
 
         // Devolver las list actualizadas al componente padre
         onUploadSuccess(updatedList);

@@ -11,10 +11,11 @@ export interface SimpleDialogProps {
   selectedValue: string;
   onClose: (value: string) => void;
   options: string[];
+  title: string
 }
 
 const SimpleDialog: React.FC<SimpleDialogProps> = (props) => {
-  const { onClose, selectedValue, open, options } = props;
+  const { onClose, selectedValue, open, options, title } = props;
 
   const handleClose = () => {
     onClose(selectedValue);
@@ -26,7 +27,7 @@ const SimpleDialog: React.FC<SimpleDialogProps> = (props) => {
 
   return (
     <Dialog onClose={handleClose} open={open}>
-      <DialogTitle className="bg-neutral-900 text-white">Set backup account</DialogTitle>
+      <DialogTitle className="bg-neutral-900 text-white">{title}</DialogTitle>
       <List className='bg-neutral-900'>
         {options.map((option) => (
           <ListItem key={option} className="bg-neutral-800 text-white">

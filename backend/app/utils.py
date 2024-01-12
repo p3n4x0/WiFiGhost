@@ -12,6 +12,12 @@ def ret(resp, status=200):
 def req(req):
     return req.get_json()
 
+def readPasswordFromFile(file_path):
+    # Lógica para leer la contraseña desde el archivo, ajusta según tus necesidades
+    with open(file_path, 'r') as file:
+        password = file.read()
+    return password
+
 def is_mac_addres(mac):
     return bool(re.match('^\s*' + '[\:\-]'.join(['([0-9a-f]{2})'] * 6) + '\s*$', mac.lower()))
 

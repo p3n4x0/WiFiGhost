@@ -1,3 +1,9 @@
+interface KeyInfo {
+    apName: string;
+    bssid: string;
+    password: string;
+}
+
 export const init = async () => {
     try {
         const response = await fetch('http://127.0.0.1:8080/');
@@ -8,17 +14,28 @@ export const init = async () => {
     }
 }
 
-export const getNetcards = async () =>  {
+const getNetcards = async () =>  {
     try {
         const response = await fetch('http://127.0.0.1:8080/netcard');
         const data = await response.json();
-        console.log(data.netcards);
         return data.netcards;
     } catch (error) {
         console.error('Error in getNetcards:', error);
         return null;
     }
 }
+
+export const fetchNetcards = async (setNetcards: React.Dispatch<React.SetStateAction<string[]>>) => {
+    try {
+      const netcardsBackend = await getNetcards();
+      if (netcardsBackend) {
+        const netcardsArray = Array.isArray(netcardsBackend) ? netcardsBackend : [netcardsBackend];
+        setNetcards(netcardsArray);
+      }
+    } catch (error) {
+      console.error('Error fetching netcards:', error);
+    }
+  };
 
 export const setNetcardMon = async (netcard: string) => {
     try {
@@ -140,15 +157,43 @@ export const startCrack = async (wordlist: string, hash: string) => {
     }
 }
 
-export const getList = async (list: string) => {
+const getList = async (list: string) => {
     try {
         const response = await fetch(`http://127.0.0.1:8080/list/${list}`);
         const data = await response.json();
         console.log(data.ls);
+        return data.ls
     } catch (error) {
         console.error('Error in getList:', error);
     }
 }
+
+export const fetchList = async (setList: React.Dispatch<React.SetStateAction<string[]>>, type: string) => {
+    try {
+      const listFromBackend = await getList(type);
+      if(listFromBackend){
+        setList(listFromBackend);
+      }
+    } catch (error) {
+      console.error('Error fetching initial list:', error);
+    }
+};
+
+export const fetchKeys = async (setKeys: React.Dispatch<React.SetStateAction<KeyInfo[]>>) => {
+    try {
+        const passBackend = await getList("passDB");
+        const hashBackend = await getList("hashDB");
+        let combinedList: KeyInfo[] = []
+
+        combinedList = [...passBackend, ...hashBackend];
+
+        setKeys(combinedList);
+
+    } catch (error) {
+        console.error('Error fetching initial list:', error);
+    }
+};
+
 
 export const uploadFile = async (list: string, file: File) => {
     try {

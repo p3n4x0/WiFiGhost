@@ -4,33 +4,25 @@ import NetcardSwitches from './switch';
 import { useState, useEffect } from 'react';
 import WifiOffRounded from '@mui/icons-material/WifiOffRounded';
 import WifiRounded from '@mui/icons-material/WifiRounded';
-import { getNetcards, init, setNetcardMon, stopNetcardMon } from '@/app/lib/data';
+import { fetchNetcards, setNetcardMon, stopNetcardMon } from '@/app/lib/data';
 
 interface PopoverComponentProps {
   onCheckout: (netcardSelected: string) => void;
 }
 
 export const PopoverComponent: React.FC<PopoverComponentProps> = ({ onCheckout }) => {
-  const netcards = [
-    { id: 1, name: 'Netcard 1' },
-    { id: 2, name: 'Netcard 2' },
-    { id: 3, name: 'Netcard 3' },
-    // Agrega más netcards según sea necesario
-  ];
-  const test = async () => {
-    const t = await getNetcards()
-    
-    return netcards
-  }
+  const [netcards, setNetcards] = useState<string[]>([]);
   const [netcard, setNetcard] = useState('');
   const [netcardSelected, setNetcardSelected] = useState<string | null>(null);
+  
+  
   const handleNetcardChange = (netcardName: string) => {
     setNetcard(netcardName);
   };
-
+  
   const handleCheckoutClick = () => {
     if(netcard){
-      setNetcardMon("wlan0")
+      setNetcardMon(netcard)
     }
     else{
       stopNetcardMon()
@@ -45,6 +37,8 @@ export const PopoverComponent: React.FC<PopoverComponentProps> = ({ onCheckout }
     if (savedNetcard) {
       setNetcardSelected(savedNetcard);
     }
+
+    fetchNetcards(setNetcards)
   }, []);
 
   return (
@@ -57,7 +51,7 @@ export const PopoverComponent: React.FC<PopoverComponentProps> = ({ onCheckout }
         </Button>
       </Popover.Container>
       <Popover.Action>
-        <IconButton className='rounded-full px-5 py-2 mr-3 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30 hover:scale-110' onClick={test}>
+        <IconButton className='rounded-full px-5 py-2 mr-3 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30 hover:scale-110'>
           {netcardSelected ? <WifiRounded className='text-green-500'/> : <WifiOffRounded className='text-red-500'/>}
         </IconButton>
       </Popover.Action>

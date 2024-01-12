@@ -1,3 +1,5 @@
+from os import listdir, pardir
+from os.path import abspath, dirname, isfile, join
 import threading
 import subprocess
 from markupsafe import escape
@@ -29,8 +31,8 @@ def index():
 def getNetcardMon():
     listNetcards = 'iwconfig 2>&1 | grep "ESSID" | while read netcard text; do echo "$netcard"; done'
     output = subprocess.run(listNetcards, check=True, shell=True, capture_output=True)
-    
-    return ret({"netcards": f"{output.stdout.decode()}"})
+    netcards_list = output.stdout.decode().split('\n')[:-1]
+    return ret({"netcards": netcards_list})
 
 @app.post('/netcard')
 def setNetcardMon():
@@ -217,9 +219,17 @@ def deleteFile(list):
 @app.get('/list/<string:list>')
 def getLists(list):
     list = escape(list)
-    ls = f'ls {list}'
-    output = subprocess.run(ls, check=True, capture_output=True, text=True, shell=True)
-    
-    ls = output.stdout
+    current_directory = abspath(dirname(__file__))
+    parent_directory = abspath(join(current_directory, pardir))
+    folder_path = join(parent_directory, list)
 
-    return ret({"ls": f"{ls}"})
+    file_list = [f for f in listdir(folder_path) if isfile(join(folder_path, f))]
+
+    if list == "passDB":
+        key_list = [{'apName': f.split('_')[0], 'bssid': f.split('_')[1].replace('.cap', ''), 'password': readPasswordFromFile(join(folder_path, f))} for f in file_list]
+    elif list == "hashDB":
+        key_list = [{'apName': f.split('_')[0], 'bssid': f.split('_')[1].replace('.cap', ''), 'password': None} for f in file_list]
+    else:
+        key_list = file_list
+
+    return ret({"ls": key_list})

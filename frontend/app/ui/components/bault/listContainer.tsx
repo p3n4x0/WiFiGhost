@@ -1,33 +1,31 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import List from "@/app/ui/components/bault/list";
 import FileUploadButton from "@/app/ui/components/bault/uploadButton";
-import { getList } from '@/app/lib/data';
+import { fetchList } from '@/app/lib/data';
 
 interface ListContainerProps {
   type: string
 }
 
 const ListContainer: React.FC<ListContainerProps> = ({ type }) => {
-  const [list, setList] = useState([
-    { id: 1, name: "Wordlist 1" },
-    { id: 2, name: "Wordlist 2" },
-    { id: 3, name: "Wordlist 3" },
-    { id: 4, name: "Wordlist 1" },
-    { id: 5, name: "Wordlist 2" },
-    { id: 6, name: "Wordlist 3" },
-  ]);
+  const [list, setList] = useState<string[]>([]);
   
-  const handleListUploadSuccess = (updatedList: React.SetStateAction<{ id: number; name: string; }[]>) => {
+  const handleListUploadSuccess = (updatedList: string[]) => {
     setList(updatedList)
-    getList(type)
   };
+  
+
+
+  useEffect(() => {
+    fetchList(setList, type);
+  }, []); 
 
   return (
     <div className="flex flex-col justify-center items-center">
       <div className="flex flex-col items-center justify-center p-8 mt-8">
         <div className="flex flex-col gap-4">
           <List type={type} lists={list} onUploadSuccess={handleListUploadSuccess} />
-          <FileUploadButton type={type} list={list} onUploadSuccess={handleListUploadSuccess} />
+          <FileUploadButton type={type} lists={list} onUploadSuccess={handleListUploadSuccess} />
         </div>
       </div>
     </div>

@@ -3,42 +3,37 @@ import { Button, CircularProgress } from '@mui/material';
 import Pagination from '../pagination';
 import { deleteFile } from '@/app/lib/data';
 
-
-interface List {
-  id: number;
-  name: string;
-}
-
 interface ListProps {
-  lists: List[];
-  onUploadSuccess: (updatedLists: List[]) => void;
-  type: string
+  lists: string[];
+  onUploadSuccess: (updatedLists: string[]) => void;
+  type: string;
 }
 
 const List: React.FC<ListProps> = ({ lists, onUploadSuccess, type }) => {
-  const [SelectedList, setSelectedList] = useState<List | null>(null);
+  const [selectedList, setSelectedList] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
   // Lógica de paginación
   const [page, setPage] = useState(1);
   const itemsPerPage = 6;
   const totalItems = lists.length;
   const showPagination = totalItems > itemsPerPage;
 
-  const handlelistClick = (list: List) => {
-    setSelectedList((prevlist) => (prevlist === list ? null : list));
+  const handleListClick = (list: string) => {
+    setSelectedList((prevList) => (prevList === list ? null : list));
   };
 
   const handleDeleteClick = async () => {
-    if (SelectedList) {
+    if (selectedList) {
       setIsDeleting(true);
 
       try {
-        deleteFile(type, SelectedList.name)
+        await deleteFile(type, selectedList); // Asegúrate de que deleteFile maneje el nombre del archivo
         // Simulación de la eliminación exitosa
         // Aquí deberías realizar la lógica de eliminación real
 
         // Asumiendo que las lists se reciben del backend después de la eliminación
-        const updatedLists: List[] = lists.filter(list => list.id !== SelectedList.id);
+        const updatedLists: string[] = lists.filter((list) => list !== selectedList);
 
         setSelectedList(null);
         onUploadSuccess(updatedLists);
@@ -62,19 +57,19 @@ const List: React.FC<ListProps> = ({ lists, onUploadSuccess, type }) => {
     <div className="bg-neutral-900 p-6 rounded-lg shadow-lg">
       <h2 className="text-white text-2xl font-bold mb-4">{type} Disponibles</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {lists.slice(startIndex, endIndex).map((list) => (
+        {lists.slice(startIndex, endIndex).map((list, index) => (
           <div
-            key={list.id}
-            onClick={() => handlelistClick(list)}
+            key={index} // Usar el índice del array como clave en lugar de un id inexistente
+            onClick={() => handleListClick(list)}
             className={`cursor-pointer p-4 rounded-lg ${
-              SelectedList === list ? 'bg-neutral-600' : 'bg-neutral-800 hover:bg-neutral-700'
+              selectedList === list ? 'bg-neutral-600' : 'bg-neutral-800 hover:bg-neutral-700'
             } transition duration-300`}
           >
-            <h3 className="text-white text-lg font-semibold mb-2">{list.name}</h3>
+            <h3 className="text-white text-lg font-semibold mb-2">{list}</h3>
           </div>
         ))}
       </div>
-      {SelectedList && (
+      {selectedList && (
         <div className="mt-4 flex justify-end">
           <Button
             variant="contained"
