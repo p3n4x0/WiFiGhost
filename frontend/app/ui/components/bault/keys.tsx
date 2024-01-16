@@ -53,6 +53,7 @@ const KeyList: React.FC<KeyListProps> = ({ keysInfo }) => {
             className={`cursor-pointer p-4 rounded-lg ${
               selectedKey === key ? 'bg-neutral-600' : 'bg-neutral-800 hover:bg-neutral-700'
             } transition duration-300`}
+            style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}
           >
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-white text-lg font-semibold">{key.apName}, {key.bssid}</h3>
@@ -71,9 +72,9 @@ const KeyList: React.FC<KeyListProps> = ({ keysInfo }) => {
                 </Alert>
               )}
             </div>
-            <p className={selectedKey === key ? 'text-white' : 'text-gray-400'}>
+            <p className={selectedKey === key ? 'text-white' : 'text-gray-400'} style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
               {selectedKey === key ? 
-                `Password: ${key.password}` : key.password !== null ? 
+                `${key.password}` : key.password !== null ? 
                   'Click to reveal password': ''}
             </p>
           </div>

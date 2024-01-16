@@ -18,6 +18,21 @@ def readPasswordFromFile(file_path):
         password = file.read()
     return password
 
+def extractPassword(file_input, file_output):
+    with open(file_input, "r") as file:
+        contenido = file.read()
+
+    lineas = contenido.split('\n')
+    for linea in lineas:
+        if "The password is" in linea:
+            password = linea.split("'")[1]
+            break
+
+    with open(file_output, "w") as file:
+        file.write(password)
+
+
+
 def is_mac_addres(mac):
     return bool(re.match('^\s*' + '[\:\-]'.join(['([0-9a-f]{2})'] * 6) + '\s*$', mac.lower()))
 
@@ -38,9 +53,10 @@ def clean(path, attack=False):
 
 def readScan():
     path = config['server']['filePath']
-    while scanning:
+    print(scanning)
+    while 1:
         scans = []
-        sleep(3)
+        sleep(10)
         with open(f"{path}/dumpData-01.csv", "r") as csvfile:
             scanData = csv.reader(csvfile)
 
@@ -50,6 +66,7 @@ def readScan():
                 if length > 0:
                     if is_mac_addres(row[0]) and (length > 0):
                         bssidStation = row[0]
+                        type = row[5]
                         for station in scans:
                             if station["bssidStation"] == bssidStation:
                                 continue
@@ -70,6 +87,7 @@ def readScan():
                                 "bssidStation": bssidStation,
                                 "essidStation": essidStation,
                                 "channelStation": channelStation,
+                                "type": type,
                                 "clients": []
                                 }
                             scans.append(scan)

@@ -11,16 +11,11 @@ interface KeyInfo {
 }
 
 export default function Home() {
-  const exampleKeys = [
-    { apName: 'WiFi Network 1', password: 'examplePassword1', bssid: 'pruebaBssid1' },
-    { apName: 'WiFi Network 2', password: 'examplePassword2', bssid: 'pruebaBssid2' },
-    { apName: 'WiFi Network 3', password: 'examplePassword3', bssid: 'pruebaBssid3' },
-  ];
 
   const [keys, setKeys] = useState<KeyInfo[]>([]);
 
   useEffect(() => {
-    fetchKeys(setKeys)
+    fetchKeys(setKeys, "all")
   }, []); 
   
   return (

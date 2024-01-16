@@ -2,7 +2,6 @@ import yaml
 from flask import Flask
 from flask_socketio import SocketIO
 from flask_cors import CORS
-from flask_session import Session
 
 with open('config/config.yaml', 'r') as file:
     config = yaml.safe_load(file)
@@ -40,10 +39,8 @@ print('''
 app = Flask(__name__)
 
 app.secret_key = config['server']['secret']
-Session(app)
 
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
-socketio = SocketIO(app)
-
+socketio = SocketIO(app, cors_allowed_origins="http://localhost:3000")
 
 from app import routes

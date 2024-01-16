@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
-import { Button, CircularProgress, FormControl, InputLabel, MenuItem, Modal, Select} from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Alert, Button, CircularProgress, FormControl, InputLabel, MenuItem, Modal, Select} from '@mui/material';
 import AttackSelector from './attacks';
 import Pagination from '../pagination';
 import { setTarget, startAttack, startAttack0, startAttack2 } from '@/app/lib/data';
+import io from 'socket.io-client'
+
+
+const socket = io('http://localhost:8080/')
+
 
 interface ScanInfo {
   bssidStation: string;
@@ -13,23 +18,30 @@ interface ScanInfo {
 }
 
 interface APListProps {
-  scans: ScanInfo[];
   isActivated: number;
   setActivated: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const Scanner: React.FC<APListProps> = ({ scans, isActivated, setActivated }) => {
+const Scanner: React.FC<APListProps> = ({ isActivated, setActivated }) => {
   const [selectedAP, setSelectedAP] = useState<ScanInfo | null>(null);
   const [isFetching, setIsFetching] = useState(false);
   const [attack, setAttack] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedNumPackets, setSelectedNumPackets] = useState(0);
   const [selectedFakeNetworks, setselectedFakeNetworks] = useState('');
+  const [showAlert, setShowAlert] = useState(false);
+  const [scans, setScans] = useState<ScanInfo[] | null>(null);
 
+  useEffect(() => {
+    socket.on('data', (scansIO) => {
+      setScans(scansIO)
+    });
+  }, []);
+  
   // Lógica de paginación
   const [page, setPage] = useState(1);
   const itemsPerPage = 6;
-  const totalItems = scans.length;
+  const totalItems = scans ? scans.length : 0;
   const showPagination = totalItems > itemsPerPage;
 
   const handleAPClick = async (ap: ScanInfo) => {
@@ -42,10 +54,14 @@ const Scanner: React.FC<APListProps> = ({ scans, isActivated, setActivated }) =>
     if (selectedAP && attack || selectedAP && attack === 0) {
       setIsFetching(true);
       try {
-        if (attack === 0) startAttack0(attack, selectedNumPackets)
+        if (attack === 0) await startAttack0(attack, selectedNumPackets)
         else if (attack === 2) startAttack2(attack, selectedFakeNetworks)
         else startAttack(attack)
         console.log(`Status: ${selectedAP.essidStation} | ${attack}`);
+        setShowAlert(true);
+        setTimeout(() => {
+          setShowAlert(false);
+        }, 2500);
       } catch (error) {
         console.error('Error al conectarse al AP:', error);
       } finally {
@@ -69,7 +85,7 @@ const Scanner: React.FC<APListProps> = ({ scans, isActivated, setActivated }) =>
 
   const indexOfLastItem = page * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = scans.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = scans ? scans.slice(indexOfFirstItem, indexOfLastItem) : [];
 
   return (
     <div className="bg-neutral-900 p-6 rounded-lg shadow-lg h-half-screen mt-8 ml-8 mr-8">
@@ -121,7 +137,7 @@ const Scanner: React.FC<APListProps> = ({ scans, isActivated, setActivated }) =>
       {selectedAP && (
         <>
           <div>
-            <AttackSelector apType={selectedAP.type} clients={selectedAP.clients.length} selectedAttack={attack} onSelectAttack={setAttack} />
+            <AttackSelector apType={selectedAP.type.toLowerCase()} clients={selectedAP.clients.length} selectedAttack={attack} onSelectAttack={setAttack} />
           </div>
           <div className="flex justify-end gap-6">
             {attack === 0 && (
@@ -179,6 +195,11 @@ const Scanner: React.FC<APListProps> = ({ scans, isActivated, setActivated }) =>
             >
               {isFetching ? <CircularProgress size={20} color="inherit" /> : 'Attack'}
             </Button>
+            {showAlert && (
+              <Alert severity="success" sx={{ position: 'fixed', bottom: 16, left: 16 }}>
+                Successful attack
+              </Alert>
+            )}
           </div>
         </>
       )}

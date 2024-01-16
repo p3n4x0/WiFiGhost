@@ -4,7 +4,7 @@ import threading
 import subprocess
 from markupsafe import escape
 from flask import request
-from app import app, config
+from backend.app import app, config
 from werkzeug.utils import secure_filename
 
 #Variables
@@ -29,7 +29,7 @@ def index():
 
 @app.get('/netcard')
 def getNetcardMon():
-    listNetcards = 'iwconfig 2>&1 | grep "ESSID" | while read netcard text; do echo "$netcard"; done'
+    listNetcards = 'iwconfig 2>&1 | grep "IEEE" | while read netcard text; do echo "$netcard"; done'
     output = subprocess.run(listNetcards, check=True, shell=True, capture_output=True)
     netcards_list = output.stdout.decode().split('\n')[:-1]
     return ret({"netcards": netcards_list})
@@ -73,7 +73,10 @@ def scan():
     subprocess.Popen(startScan, shell=True)
 
     scanning = True
-    threading.Thread(target=readScan).start()
+    print("scanning")
+    readScan()
+    print("Finish")
+    #threading.Thread(target=readScan).start()
            
     return ret({"status":"OK"})
 
@@ -189,8 +192,10 @@ def cracker(wordlist):
 
     #Start cracking
     #startCrack =  f'pyrit -r {path}/dumpDataAttack-01.cap attack_db > passDB/{essid}'
-    startCrack =  f'pyrit -r {path}/{hash} attack_db > passDB/{essid}'
+    startCrack =  f'pyrit -r hashDB/{hash} attack_db > {path}/{hash.replace(".cap", "")}'
     subprocess.run(startCrack, check=True, shell=True)
+
+    extractPassword(f'{path}/{hash.replace(".cap", "")}', f'passDB/{hash.replace(".cap", "")}')
 
     return ret({"status":"OK"})
 

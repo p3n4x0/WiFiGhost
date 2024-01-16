@@ -8,7 +8,7 @@ export const init = async () => {
     try {
         const response = await fetch('http://127.0.0.1:8080/');
         const data = await response.json();
-        console.log(data.status);
+        ////console.log(data.status);
     } catch (error) {
         console.error('Error in init:', error);
     }
@@ -48,7 +48,7 @@ export const setNetcardMon = async (netcard: string) => {
         });
 
         const data = await response.json();
-        console.log(data);
+        ////console.log(data);
     } catch (error) {
         console.error('Error in setNetcardMon:', error);
     }
@@ -58,7 +58,7 @@ export const stopNetcardMon = async () => {
     try {
         const response = await fetch('http://127.0.0.1:8080/stop');
         const data = await response.json();
-        console.log(data);
+        ////console.log(data);
     } catch (error) {
         console.error('Error in stopNetcardMon:', error);
     }
@@ -68,7 +68,7 @@ export const startScan = async () => {
     try {
         const response = await fetch('http://127.0.0.1:8080/scan');
         const data = await response.json();
-        console.log(data);
+        ////console.log(data);
     } catch (error) {
         console.error('Error in startScan:', error);
     }
@@ -85,7 +85,7 @@ export const setTarget = async (bssid: string, essid: string, channel: number) =
         });
 
         const data = await response.json();
-        console.log(data);
+        ////console.log(data);
     } catch (error) {
         console.error('Error in setTarget:', error);
     }
@@ -101,7 +101,7 @@ export const startAttack = async (id: number) => {
         });
 
         const data = await response.json();
-        console.log(data);
+        ////console.log(data);
     } catch (error) {
         console.error('Error in startAttack:', error);
     }
@@ -118,7 +118,7 @@ export const startAttack0 = async (id: number, nPackets: number) => {
         });
 
         const data = await response.json();
-        console.log(data);
+        ////console.log(data);
     } catch (error) {
         console.error('Error in startAttack:', error);
     }
@@ -135,7 +135,7 @@ export const startAttack2 = async (id: number, fakeNets: string) => {
         });
 
         const data = await response.json();
-        console.log(data);
+        ////console.log(data);
     } catch (error) {
         console.error('Error in startAttack:', error);
     }
@@ -151,7 +151,7 @@ export const startCrack = async (wordlist: string, hash: string) => {
             body: JSON.stringify({ "hash": hash }),
         });
         const data = await response.json();
-        console.log(data);
+        ////console.log(data);
     } catch (error) {
         console.error('Error in startCrack:', error);
     }
@@ -161,7 +161,7 @@ const getList = async (list: string) => {
     try {
         const response = await fetch(`http://127.0.0.1:8080/list/${list}`);
         const data = await response.json();
-        console.log(data.ls);
+        //console.log(data.ls);
         return data.ls
     } catch (error) {
         console.error('Error in getList:', error);
@@ -179,15 +179,24 @@ export const fetchList = async (setList: React.Dispatch<React.SetStateAction<str
     }
 };
 
-export const fetchKeys = async (setKeys: React.Dispatch<React.SetStateAction<KeyInfo[]>>) => {
+export const fetchKeys = async (setKeys: React.Dispatch<React.SetStateAction<KeyInfo[]>>, type: string) => {
     try {
-        const passBackend = await getList("passDB");
-        const hashBackend = await getList("hashDB");
-        let combinedList: KeyInfo[] = []
+        if (type === "passDB"){
+            const passBackend = await getList("passDB");
+            setKeys(passBackend);
+        }
+        else if (type === "hashDB"){
+            const hashBackend = await getList("hashDB");
+            setKeys(hashBackend);
+        }
+        else if (type === "all"){
+            const passBackend = await getList("passDB");
+            const hashBackend = await getList("hashDB");
 
-        combinedList = [...passBackend, ...hashBackend];
-
-        setKeys(combinedList);
+            let combinedList: KeyInfo[] = []
+            combinedList = [...passBackend, ...hashBackend];
+            setKeys(combinedList);
+        }
 
     } catch (error) {
         console.error('Error fetching initial list:', error);
@@ -206,7 +215,7 @@ export const uploadFile = async (list: string, file: File) => {
         });
 
         const data = await response.json();
-        console.log(data.ls);
+        ////console.log(data.ls);
     } catch (error) {
         console.error('Error in uploadFile:', error);
     }
@@ -223,7 +232,7 @@ export const deleteFile = async (list: string, file: string) => {
         });
 
         const data = await response.json();
-        console.log(data.status);
+        ////console.log(data.status);
     } catch (error) {
         console.error('Error in deleteFile:', error);
     }

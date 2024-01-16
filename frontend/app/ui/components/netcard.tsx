@@ -4,7 +4,7 @@ import NetcardSwitches from './switch';
 import { useState, useEffect } from 'react';
 import WifiOffRounded from '@mui/icons-material/WifiOffRounded';
 import WifiRounded from '@mui/icons-material/WifiRounded';
-import { fetchNetcards, setNetcardMon, stopNetcardMon } from '@/app/lib/data';
+import { fetchNetcards, setNetcardMon, stopNetcardMon, startScan } from '@/app/lib/data';
 
 interface PopoverComponentProps {
   onCheckout: (netcardSelected: string) => void;
@@ -23,6 +23,7 @@ export const PopoverComponent: React.FC<PopoverComponentProps> = ({ onCheckout }
   const handleCheckoutClick = () => {
     if(netcard){
       setNetcardMon(netcard)
+      //startScan()
     }
     else{
       stopNetcardMon()
