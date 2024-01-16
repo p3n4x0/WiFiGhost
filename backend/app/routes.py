@@ -4,7 +4,7 @@ import threading
 import subprocess
 from markupsafe import escape
 from flask import request
-from backend.app import app, config
+from app import app, config
 from werkzeug.utils import secure_filename
 
 #Variables

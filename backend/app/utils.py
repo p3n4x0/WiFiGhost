@@ -74,7 +74,7 @@ def readScan():
                             bssidClient = row[5].replace(" ", "")
                             for station in scans:
                                 if station["bssidStation"] == bssidClient:
-                                    print(station["bssidStation"])
+                                    print("cliente: " + station["bssidStation"])
                                     for client in station["clients"]:
                                         if client == bssidStation:
                                             continue
@@ -91,5 +91,5 @@ def readScan():
                                 "clients": []
                                 }
                             scans.append(scan)
-        print(scans) 
+        #print(scans) 
         socketio.emit('data', scans)

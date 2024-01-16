@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Button, CircularProgress, FormControl, InputLabel, MenuItem, Modal, Select} from '@mui/material';
 import AttackSelector from './attacks';
 import Pagination from '../pagination';
-import { setTarget, startAttack, startAttack0, startAttack2 } from '@/app/lib/data';
+import { fetchList, setTarget, startAttack, startAttack0, startAttack2 } from '@/app/lib/data';
 import io from 'socket.io-client'
 
 
@@ -31,12 +31,26 @@ const Scanner: React.FC<APListProps> = ({ isActivated, setActivated }) => {
   const [selectedFakeNetworks, setselectedFakeNetworks] = useState('');
   const [showAlert, setShowAlert] = useState(false);
   const [scans, setScans] = useState<ScanInfo[] | null>(null);
+  const [fakeNetwords, setFakeNetworks] = useState<string[]>([])
 
   useEffect(() => {
     socket.on('data', (scansIO) => {
       setScans(scansIO)
     });
+    /*setScans([
+      {
+        bssidStation: "aaaaaa",
+        essidStation: "string",
+        channelStation: 1,
+        type: "wpa",
+        clients: ["aaaa", "bbbb"]
+      }
+    ]);       Just to test*/
   }, []);
+
+  useEffect(() => {
+    if(attack  === 2) fetchList(setFakeNetworks, "FakeNetworks")
+  }, [attack]); 
   
   // Lógica de paginación
   const [page, setPage] = useState(1);
@@ -180,9 +194,11 @@ const Scanner: React.FC<APListProps> = ({ isActivated, setActivated }) => {
                   onChange={(e) => setselectedFakeNetworks(e.target.value as string)}
                   className="text-white"
                 >
-                  {/* Aquí deberías mapear las opciones disponibles de Fake Networks */}
-                  <MenuItem value="fakeNetwork1">Fake Network 1</MenuItem>
-                  <MenuItem value="fakeNetwork2">Fake Network 2</MenuItem>
+                  {fakeNetwords.map((network) => (
+                    <MenuItem value={network}>
+                      {network}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             )}
