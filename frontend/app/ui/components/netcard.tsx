@@ -20,10 +20,9 @@ export const PopoverComponent: React.FC<PopoverComponentProps> = ({ onCheckout }
     setNetcard(netcardName);
   };
   
-  const handleCheckoutClick = () => {
+  const handleCheckoutClick = async () => {
     if(netcard){
       setNetcardMon(netcard)
-      //startScan()
     }
     else{
       stopNetcardMon()

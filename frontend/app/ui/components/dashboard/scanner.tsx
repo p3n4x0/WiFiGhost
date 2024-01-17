@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Button, CircularProgress, FormControl, InputLabel, MenuItem, Modal, Select} from '@mui/material';
 import AttackSelector from './attacks';
 import Pagination from '../pagination';
-import { fetchList, setTarget, startAttack, startAttack0, startAttack2 } from '@/app/lib/data';
+import { fetchList, setTarget, startAttack, startAttack0, startAttack2, startScan } from '@/app/lib/data';
 import io from 'socket.io-client'
 
 
@@ -32,6 +32,12 @@ const Scanner: React.FC<APListProps> = ({ isActivated, setActivated }) => {
   const [showAlert, setShowAlert] = useState(false);
   const [scans, setScans] = useState<ScanInfo[] | null>(null);
   const [fakeNetwords, setFakeNetworks] = useState<string[]>([])
+  const [scanning, setScanning] = useState(false)
+
+  const handleScanButton = () => {
+    startScan()
+    setScanning(true)
+  }
 
   useEffect(() => {
     socket.on('data', (scansIO) => {
@@ -69,9 +75,9 @@ const Scanner: React.FC<APListProps> = ({ isActivated, setActivated }) => {
       setIsFetching(true);
       try {
         if (attack === 0) await startAttack0(attack, selectedNumPackets)
-        else if (attack === 2) startAttack2(attack, selectedFakeNetworks)
-        else startAttack(attack)
-        console.log(`Status: ${selectedAP.essidStation} | ${attack}`);
+        else if (attack === 2) await startAttack2(attack, selectedFakeNetworks)
+        else await startAttack(attack)
+        setScanning(false)
         setShowAlert(true);
         setTimeout(() => {
           setShowAlert(false);
@@ -104,49 +110,61 @@ const Scanner: React.FC<APListProps> = ({ isActivated, setActivated }) => {
   return (
     <div className="bg-neutral-900 p-6 rounded-lg shadow-lg h-half-screen mt-8 ml-8 mr-8">
       <h2 className="text-white text-2xl font-bold mb-2">Scanner</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-        {currentItems.map((ap) => (
-          <div
-            key={ap.bssidStation}
-            onClick={() => handleAPClick(ap)}
-            className={`cursor-pointer flex p-4 rounded-lg ${
-              selectedAP === ap ? 'bg-neutral-600' : 'bg-neutral-800 hover:bg-neutral-700'
-            } transition duration-300`}
+      {scanning ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+          {currentItems.map((ap) => (
+            <div
+              key={ap.bssidStation}
+              onClick={() => handleAPClick(ap)}
+              className={`cursor-pointer flex p-4 rounded-lg ${
+                selectedAP === ap ? 'bg-neutral-600' : 'bg-neutral-800 hover:bg-neutral-700'
+              } transition duration-300`}
+            >
+              <div className="flex flex-col">
+                <h3 className="text-white text-lg font-semibold">{ap.essidStation}</h3>
+                <p className="text-gray-400">BSSID: {ap.bssidStation}</p>
+                <p className="text-gray-400">Channel: {ap.channelStation}</p>
+                <p className="text-gray-400">Type: {ap.type}</p>
+              </div>
+              <div className="ml-auto flex flex-col">
+                <p className="text-gray-400">Clients:</p>
+                <ul className="list-disc list-inside text-gray-400">
+                  {ap.clients.slice(0, 3).map((client) => (
+                    <li key={client}>{client}</li>
+                  ))}
+                  {ap.clients.length > 3 && (
+                    <>
+                      <li onClick={handleShowClientsModal} className="cursor-pointer underline text-gray-400">
+                        {`+${ap.clients.length - 3} more`}
+                      </li>
+                      <Modal open={showModal} onClose={handleCloseModal}>
+                        <div className="bg-neutral-800 p-6 rounded-lg shadow-lg mx-auto my-16 max-w-md border border-black">
+                          <h2 className="text-white text-2xl font-bold">Clients</h2>
+                          <ul className="list-disc list-inside text-white">
+                            {ap.clients.map((client) => (
+                              <li key={client}>{client}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </Modal>
+                    </>
+                  )}
+                </ul>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className='text-center'>
+          <button
+            className="bg-neutral-800 hover:bg-neutral-700 text-white font-bold py-2 px-4 rounded-lg mt-4"
+            onClick={handleScanButton}
           >
-            <div className="flex flex-col">
-              <h3 className="text-white text-lg font-semibold">{ap.essidStation}</h3>
-              <p className="text-gray-400">BSSID: {ap.bssidStation}</p>
-              <p className="text-gray-400">Channel: {ap.channelStation}</p>
-              <p className="text-gray-400">Type: {ap.type}</p>
-            </div>
-            <div className="ml-auto flex flex-col">
-              <p className="text-gray-400">Clients:</p>
-              <ul className="list-disc list-inside text-gray-400">
-                {ap.clients.slice(0, 3).map((client) => (
-                  <li key={client}>{client}</li>
-                ))}
-                {ap.clients.length > 3 && (
-                  <>
-                    <li onClick={handleShowClientsModal} className="cursor-pointer underline text-gray-400">
-                      {`+${ap.clients.length - 3} more`}
-                    </li>
-                    <Modal open={showModal} onClose={handleCloseModal}>
-                      <div className="bg-neutral-800 p-6 rounded-lg shadow-lg mx-auto my-16 max-w-md border border-black">
-                        <h2 className="text-white text-2xl font-bold">Clients</h2>
-                        <ul className="list-disc list-inside text-white">
-                          {ap.clients.map((client) => (
-                            <li key={client}>{client}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </Modal>
-                  </>
-                )}
-              </ul>
-            </div>
-          </div>
-        ))}
-      </div>
+            Start Scan
+          </button>
+        </div>
+      )
+      }
       <Pagination totalItems={totalItems} itemsPerPage={itemsPerPage} page={page} onChangePage={handleChangePage} showPagination={showPagination} />
       {selectedAP && (
         <>

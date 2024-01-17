@@ -3,7 +3,7 @@ import csv
 import subprocess
 from time import sleep
 from app import config, socketio
-from app.routes import scanning, scanAttack
+from app.routes import scanning
 from flask import jsonify, make_response
 
 def ret(resp, status=200):
@@ -36,8 +36,7 @@ def extractPassword(file_input, file_output):
 def is_mac_addres(mac):
     return bool(re.match('^\s*' + '[\:\-]'.join(['([0-9a-f]{2})'] * 6) + '\s*$', mac.lower()))
 
-def waitHandshake():
-    path = config['server']['filePath']
+def waitHandshake(path):
     while 1:
         sleep(2)
         with open(f'{path}/tempScan') as scanFile:
@@ -45,10 +44,10 @@ def waitHandshake():
                 break
 
 def clean(path, attack=False):
-    if attack: clean = f'rm {path}/captureHS.hccap {path}/dumpDataAttack-01* {path}/tempScan'
+    if attack: clean = f'rm {path}/dumpDataAttack-01* {path}/tempScan'
     else: clean = f'rm {path}/dumpData-01.csv'
 
-    subprocess.run(clean, check=True, text=True, shell=True)
+    subprocess.run(clean, text=True, shell=True)
 
 
 def readScan():
