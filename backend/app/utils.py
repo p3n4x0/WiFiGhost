@@ -13,7 +13,6 @@ def req(req):
     return req.get_json()
 
 def readPasswordFromFile(file_path):
-    # Lógica para leer la contraseña desde el archivo, ajusta según tus necesidades
     with open(file_path, 'r') as file:
         password = file.read()
     return password
@@ -41,6 +40,7 @@ def waitHandshake(path):
         sleep(2)
         with open(f'{path}/tempScan') as scanFile:
             if "handshake" in scanFile.read():
+                print("HANDSAHKE FIND")
                 break
 
 def clean(path, attack=False):
@@ -52,8 +52,8 @@ def clean(path, attack=False):
 
 def readScan():
     path = config['server']['filePath']
-    print(scanning)
     while 1:
+        print(scanning)
         scans = []
         sleep(10)
         with open(f"{path}/dumpData-01.csv", "r") as csvfile:

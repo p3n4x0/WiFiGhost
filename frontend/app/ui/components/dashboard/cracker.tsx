@@ -42,7 +42,7 @@ const Cracker: React.FC<CrackerProps> = ({ setActivated }) => {
     const [apName, bssid] = value.split('/');
 
     // Realiza la transformación
-    const transformedValue = `${apName}_${bssid}.cap`;
+    const transformedValue = `${apName}&${bssid}.cap`;
 
     setHashSelected(transformedValue);
     setOpenHashDialog(false)

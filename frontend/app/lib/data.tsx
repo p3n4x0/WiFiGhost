@@ -64,11 +64,13 @@ export const stopNetcardMon = async () => {
     }
 }
 
-export const startScan = async () => {
+export const startScan = async (setScanning: (value: React.SetStateAction<boolean>) => void) => {
     try {
         const response = await fetch('http://127.0.0.1:8080/scan');
         const data = await response.json();
-        ////console.log(data);
+        if (response.status === 200) {
+            setScanning(true);
+        }
     } catch (error) {
         console.error('Error in startScan:', error);
     }
@@ -161,7 +163,7 @@ const getList = async (list: string) => {
     try {
         const response = await fetch(`http://127.0.0.1:8080/list/${list}`);
         const data = await response.json();
-        //console.log(data.ls);
+        console.log(data.ls);
         return data.ls
     } catch (error) {
         console.error('Error in getList:', error);

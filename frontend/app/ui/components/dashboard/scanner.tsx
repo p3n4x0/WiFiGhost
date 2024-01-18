@@ -6,6 +6,7 @@ import { fetchList, setTarget, startAttack, startAttack0, startAttack2, startSca
 import io from 'socket.io-client'
 
 
+
 const socket = io('http://localhost:8080/')
 
 
@@ -35,8 +36,7 @@ const Scanner: React.FC<APListProps> = ({ isActivated, setActivated }) => {
   const [scanning, setScanning] = useState(false)
 
   const handleScanButton = () => {
-    startScan()
-    setScanning(true)
+    startScan(setScanning)
   }
 
   useEffect(() => {
@@ -78,7 +78,8 @@ const Scanner: React.FC<APListProps> = ({ isActivated, setActivated }) => {
         else if (attack === 2) await startAttack2(attack, selectedFakeNetworks)
         else await startAttack(attack)
         setScanning(false)
-        setShowAlert(true);
+        setSelectedAP(null)
+        setShowAlert(true)
         setTimeout(() => {
           setShowAlert(false);
         }, 2500);
@@ -163,8 +164,7 @@ const Scanner: React.FC<APListProps> = ({ isActivated, setActivated }) => {
             Start Scan
           </button>
         </div>
-      )
-      }
+      )}
       <Pagination totalItems={totalItems} itemsPerPage={itemsPerPage} page={page} onChangePage={handleChangePage} showPagination={showPagination} />
       {selectedAP && (
         <>

