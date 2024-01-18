@@ -64,13 +64,13 @@ def readScan():
                 
                 if length > 0:
                     if is_mac_addres(row[0]) and (length > 0):
-                        bssidStation = row[0]
-                        type = row[5]
+                        bssidStation = row[0].strip()
+                        type = row[5].strip()
                         for station in scans:
                             if station["bssidStation"] == bssidStation:
                                 continue
                         if is_mac_addres(row[5]) and (length == 7):   #Clients lines
-                            bssidClient = row[5].replace(" ", "")
+                            bssidClient = row[5].strip()
                             for station in scans:
                                 if station["bssidStation"] == bssidClient:
                                     print("cliente: " + station["bssidStation"])
@@ -80,8 +80,8 @@ def readScan():
                                     station["clients"].append(bssidStation)
 
                         elif length == 15:                       #Stations lines
-                            channelStation = row[3]
-                            essidStation = row[13]
+                            channelStation = row[3].strip()
+                            essidStation = row[13].strip()
                             scan = {
                                 "bssidStation": bssidStation,
                                 "essidStation": essidStation,

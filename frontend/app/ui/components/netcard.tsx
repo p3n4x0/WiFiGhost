@@ -32,12 +32,6 @@ export const PopoverComponent: React.FC<PopoverComponentProps> = ({ onCheckout }
   };
 
   useEffect(() => {
-    // Verificar si hay un valor en localStorage al cargar el componente
-    const savedNetcard = localStorage.getItem('selectedNetcard');
-    if (savedNetcard) {
-      setNetcardSelected(savedNetcard);
-    }
-
     fetchNetcards(setNetcards)
   }, []);
 

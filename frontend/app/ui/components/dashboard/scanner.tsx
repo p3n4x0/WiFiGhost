@@ -65,6 +65,7 @@ const Scanner: React.FC<APListProps> = ({ isActivated, setActivated }) => {
   const showPagination = totalItems > itemsPerPage;
 
   const handleAPClick = async (ap: ScanInfo) => {
+    console.log("ap:"+ap.essidStation)
     setSelectedAP((prevAP) => (prevAP === ap ? null : ap));
     setActivated(() => (selectedAP === ap ? 0 : 1));
     if (selectedAP !== ap) await setTarget(ap.bssidStation, ap.essidStation, ap.channelStation)

@@ -163,7 +163,7 @@ const getList = async (list: string) => {
     try {
         const response = await fetch(`http://127.0.0.1:8080/list/${list}`);
         const data = await response.json();
-        console.log(data.ls);
+        //console.log(data.ls);
         return data.ls
     } catch (error) {
         console.error('Error in getList:', error);
