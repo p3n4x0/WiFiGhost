@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import SimpleDialog from './dialog';
-import { fetchKeys, fetchList, startCrack } from '@/app/lib/data';
+import { fetchKeys, fetchList, prepareCrack, startCrack } from '@/app/lib/data';
 import { Alert } from '@mui/material';
 
 interface KeyInfo {
@@ -24,17 +24,18 @@ const Cracker: React.FC<CrackerProps> = ({ setActivated }) => {
   const [openHashDialog, setOpenHashDialog] = useState(false)
   const [showAlert, setShowAlert] = useState(false);
 
-  const handleCrackExecution = async (selectedHash: string, selectedWordlist: string) => {
+  const handleCrackExecution = async (selectedHash: string) => {
     setActivated(3)
-    await startCrack(selectedWordlist, selectedHash)
+    await startCrack(selectedHash)
     setShowAlert(true);
     setTimeout(() => {
       setShowAlert(false);
     }, 2500);
   };
 
-  const handleWordlistClose = (value: string) => {
+  const handleWordlistClose = async (value: string) => {
     setWordlistSelected(value)
+    await prepareCrack(value)
     setOpenWordlistDialog(false)
   };
 
@@ -121,7 +122,7 @@ const Cracker: React.FC<CrackerProps> = ({ setActivated }) => {
             width={180}
             height={120}
             priority
-            onClick={() =>{if (hashSelected !== null && wordlistSelected !== null) handleCrackExecution(hashSelected, wordlistSelected)}}
+            onClick={() =>{if (hashSelected !== null && wordlistSelected !== null) handleCrackExecution(hashSelected)}}
           />
           <div className='text-white text-lg font-semibold mt-2'>Crack</div>
         </div>

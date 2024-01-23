@@ -200,28 +200,35 @@ def attack(id):
 
 ###Cracking
 
-##Cracking con Pyrit a través de ataque por Base de Datos RAINBOW TABLE
-@app.post('/crack/<string:wordlist>')
-def cracker(wordlist):
+@app.get('/prepareCrack/<string:wordlist>')
+def preparer(wordlist):
     try:
         wordlist = escape(wordlist)
-        data = req(request)
-        hash = escape(data.get('hash', ''))
-        essid = hash.split('_')[0]
+
         # Define DB
         defineDB = f'pyrit -i Wordlist/{wordlist} import_passwords'
-        subprocess.run(defineDB, check=True, shell=True)
-
-        # Define ESSID
-        defineDB = f'pyrit -e {essid} create_essid'
         subprocess.run(defineDB, check=True, shell=True)
 
         # Generate PMKs
         generatePMKS = 'pyrit batch'
         subprocess.run(generatePMKS, check=True, shell=True)
+
+        return ret({"status": "OK"})
     
-        # Start cracking
+    except Exception as e:
+        return ret({"status": f"Preparing error: {str(e)}"}, 500)
+
+##Cracking con Pyrit a través de ataque por Base de Datos RAINBOW TABLE
+@app.get('/crack/<string:hash>')
+def cracker(hash):
+    try:
+        
+        essid = hash.split('_')[0]
         password = hash.replace(".cap", "")
+
+        # Define ESSID
+        defineDB = f'pyrit -e {essid} create_essid'
+        subprocess.run(defineDB, check=True, shell=True)
 
         startCrack = f'pyrit -r hashDB/{hash} attack_db > {path}/{password}'
         subprocess.run(startCrack, check=True, shell=True)

@@ -629,6 +629,15 @@ video {
   margin-right: calc(1rem * var(--tw-space-x-reverse));
   margin-left: calc(1rem * calc(1 - var(--tw-space-x-reverse)));
 }
+.overflow-hidden{
+  overflow: hidden;
+}
+.overflow-ellipsis{
+  text-overflow: ellipsis;
+}
+.whitespace-nowrap{
+  white-space: nowrap;
+}
 .rounded-full{
   border-radius: 9999px;
 }
@@ -906,6 +915,12 @@ body {
   }
   .lg\:text-left{
     text-align: left;
+  }
+}
+
+@media (min-width: 1280px){
+  .xl\:grid-cols-4{
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 

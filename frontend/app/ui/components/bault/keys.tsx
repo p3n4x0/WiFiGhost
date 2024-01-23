@@ -53,10 +53,12 @@ const KeyList: React.FC<KeyListProps> = ({ keysInfo }) => {
             className={`cursor-pointer p-4 rounded-lg ${
               selectedKey === key ? 'bg-neutral-600' : 'bg-neutral-800 hover:bg-neutral-700'
             } transition duration-300`}
-            style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}
+            style={{ overflow: 'hidden' }}
           >
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-white text-lg font-semibold">{key.apName}, {key.bssid}</h3>
+            <h3 className="text-white text-lg font-semibold mb-2">
+              {key.apName}, {key.bssid}
+            </h3>
               {selectedKey === key && (
                 <CopyToClipboard text={key.password} onCopy={handleCopyToClipboard}>
                   <Tooltip title="Copy Password to Clipboard" placement='top'>

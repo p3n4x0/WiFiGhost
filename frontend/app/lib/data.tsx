@@ -143,15 +143,19 @@ export const startAttack2 = async (id: number, fakeNets: string) => {
     }
 }
 
-export const startCrack = async (wordlist: string, hash: string) => {
+export const prepareCrack = async (wordlist: string) => {
     try {
-        const response = await fetch(`http://127.0.0.1:8080/crack/${wordlist}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ "hash": hash }),
-        });
+        const response = await fetch(`http://127.0.0.1:8080/prepareCrack/${wordlist}`);
+        const data = await response.json();
+        ////console.log(data);
+    } catch (error) {
+        console.error('Error in prepareCrack:', error);
+    }
+}
+
+export const startCrack = async (hash: string) => {
+    try {
+        const response = await fetch(`http://127.0.0.1:8080/crack/${hash}`);
         const data = await response.json();
         ////console.log(data);
     } catch (error) {
