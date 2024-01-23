@@ -32,7 +32,7 @@ def extractPassword(file_input, file_output):
 
 
 
-def is_mac_addres(mac):
+def is_mac_address(mac):
     return bool(re.match('^\s*' + '[\:\-]'.join(['([0-9a-f]{2})'] * 6) + '\s*$', mac.lower()))
 
 def waitHandshake(path):
@@ -53,42 +53,43 @@ def clean(path, attack=False):
 def readScan():
     path = config['server']['filePath']
     while 1:
-        print(scanning)
         scans = []
-        sleep(10)
-        with open(f"{path}/dumpData-01.csv", "r") as csvfile:
-            scanData = csv.reader(csvfile)
+        sleep(8)
+        try:
+            with open(f"{path}/dumpData-01.csv", "r") as csvfile:
+                scanData = csv.reader(csvfile)
 
-            for row in scanData:
-                length = len(row)
-                
-                if length > 0:
-                    if is_mac_addres(row[0]) and (length > 0):
-                        bssidStation = row[0].strip()
-                        type = row[5].strip()
-                        for station in scans:
-                            if station["bssidStation"] == bssidStation:
-                                continue
-                        if is_mac_addres(row[5]) and (length == 7):   #Clients lines
-                            bssidClient = row[5].strip()
+                for row in scanData:
+                    length = len(row)
+                    
+                    if length > 0:
+                        if is_mac_address(row[0]) and (length > 0):
+                            bssidStation = row[0].strip()
+                            type = row[5].strip()
                             for station in scans:
-                                if station["bssidStation"] == bssidClient:
-                                    print("cliente: " + station["bssidStation"])
-                                    for client in station["clients"]:
-                                        if client == bssidStation:
-                                            continue
-                                    station["clients"].append(bssidStation)
+                                if station["bssidStation"] == bssidStation:
+                                    continue
+                            if is_mac_address(row[5]) and (length == 7):   #Clients lines
+                                bssidClient = row[5].strip()
+                                for station in scans:
+                                    if station["bssidStation"] == bssidClient:
+                                        print("cliente: " + station["bssidStation"])
+                                        for client in station["clients"]:
+                                            if client == bssidStation:
+                                                continue
+                                        station["clients"].append(bssidStation)
 
-                        elif length == 15:                       #Stations lines
-                            channelStation = row[3].strip()
-                            essidStation = row[13].strip()
-                            scan = {
-                                "bssidStation": bssidStation,
-                                "essidStation": essidStation,
-                                "channelStation": channelStation,
-                                "type": type,
-                                "clients": []
-                                }
-                            scans.append(scan)
-        #print(scans) 
-        socketio.emit('data', scans)
+                            elif length == 15:                       #Stations lines
+                                channelStation = row[3].strip()
+                                essidStation = row[13].strip()
+                                scan = {
+                                    "bssidStation": bssidStation,
+                                    "essidStation": essidStation,
+                                    "channelStation": channelStation,
+                                    "type": type,
+                                    "clients": []
+                                    }
+                                scans.append(scan)
+            socketio.emit('data', scans)
+        except:
+            break

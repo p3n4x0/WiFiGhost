@@ -30,28 +30,24 @@ const Scanner: React.FC<APListProps> = ({ isActivated, setActivated }) => {
   const [showModal, setShowModal] = useState(false);
   const [selectedNumPackets, setSelectedNumPackets] = useState(0);
   const [selectedFakeNetworks, setselectedFakeNetworks] = useState('');
-  const [showAlert, setShowAlert] = useState(false);
+  const [showAlertAttack, setshowAlertAttack] = useState(false);
+  const [showAlertScan, setshowAlertScan] = useState(false);
   const [scans, setScans] = useState<ScanInfo[] | null>(null);
   const [fakeNetwords, setFakeNetworks] = useState<string[]>([])
   const [scanning, setScanning] = useState(false)
 
   const handleScanButton = () => {
     startScan(setScanning)
+    setshowAlertScan(true)
+    setTimeout(() => {
+      setshowAlertScan(false);
+    }, 2500);
   }
 
   useEffect(() => {
     socket.on('data', (scansIO) => {
       setScans(scansIO)
     });
-    /*setScans([
-      {
-        bssidStation: "aaaaaa",
-        essidStation: "string",
-        channelStation: 1,
-        type: "wpa",
-        clients: ["aaaa", "bbbb"]
-      }
-    ]);       Just to test*/
   }, []);
 
   useEffect(() => {
@@ -80,9 +76,9 @@ const Scanner: React.FC<APListProps> = ({ isActivated, setActivated }) => {
         else await startAttack(attack)
         setScanning(false)
         setSelectedAP(null)
-        setShowAlert(true)
+        setshowAlertAttack(true)
         setTimeout(() => {
-          setShowAlert(false);
+          setshowAlertAttack(false);
         }, 2500);
       } catch (error) {
         console.error('Error al conectarse al AP:', error);
@@ -164,7 +160,13 @@ const Scanner: React.FC<APListProps> = ({ isActivated, setActivated }) => {
           >
             Start Scan
           </button>
+          
         </div>
+      )}
+      {showAlertScan && (
+        <Alert severity="success" sx={{ position: 'fixed', bottom: 16, left: 16 }}>
+          Start scanning
+        </Alert>
       )}
       <Pagination totalItems={totalItems} itemsPerPage={itemsPerPage} page={page} onChangePage={handleChangePage} showPagination={showPagination} />
       {selectedAP && (
@@ -230,7 +232,7 @@ const Scanner: React.FC<APListProps> = ({ isActivated, setActivated }) => {
             >
               {isFetching ? <CircularProgress size={20} color="inherit" /> : 'Attack'}
             </Button>
-            {showAlert && (
+            {showAlertAttack && (
               <Alert severity="success" sx={{ position: 'fixed', bottom: 16, left: 16 }}>
                 Successful attack
               </Alert>
