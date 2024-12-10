@@ -69,7 +69,7 @@ Before starting, ensure you have the following:
    ```
 2. **Run the frontend client in another terminal:**
    ```bash
-   sudo python3 backend/server.py
+   cd frontend && npm run dev
    ```
 3. Put your network card in monitor mode and start hacking! Below is a video demonstrating an example of use: attacking a WPA2-PSK network with authenticated clients.
 
