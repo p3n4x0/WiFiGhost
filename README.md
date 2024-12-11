@@ -71,7 +71,7 @@ Before starting, ensure you have the following:
    ```bash
    cd frontend && npm run dev
    ```
-3. Put your network card in monitor mode and start hacking! Below is a video demonstrating an example of use: attacking a WPA2-PSK network with authenticated clients.
+3. Go `localhost:3000` put your network card in monitor mode and start hacking! Below is a video demonstrating an example of use: attacking a WPA2-PSK network with authenticated clients.
 
 
 https://github.com/user-attachments/assets/24024d17-d980-42ef-8287-dc81d96543e3
