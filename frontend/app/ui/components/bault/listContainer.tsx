@@ -1,34 +1,37 @@
-import React, { useEffect, useState } from 'react';
+"use client"
+import React, { useCallback, useEffect, useState } from 'react';
 import List from "@/app/ui/components/bault/list";
 import FileUploadButton from "@/app/ui/components/bault/uploadButton";
 import { fetchList } from '@/app/lib/data';
 
 interface ListContainerProps {
-  type: string
+  type: string;
 }
+
+const TITLES: Record<string, string> = {
+  Wordlist: 'Wordlists',
+  FakeNetworks: 'Fake networks',
+};
 
 const ListContainer: React.FC<ListContainerProps> = ({ type }) => {
   const [list, setList] = useState<string[]>([]);
-  
-  const handleListUploadSuccess = (updatedList: string[]) => {
-    setList(updatedList)
-  };
-  
 
+  const reload = useCallback(() => {
+    fetchList(setList, type);
+  }, [type]);
 
   useEffect(() => {
-    fetchList(setList, type);
-  }, []); 
+    reload();
+  }, [reload]);
 
   return (
-    <div className="flex flex-col justify-center items-center">
-      <div className="flex flex-col items-center justify-center p-8 mt-8">
-        <div className="flex flex-col gap-4">
-          <List type={type} lists={list} onUploadSuccess={handleListUploadSuccess} />
-          <FileUploadButton type={type} lists={list} onUploadSuccess={handleListUploadSuccess} />
-        </div>
+    <section className="panel p-6">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-lg font-bold text-white">{TITLES[type] || type}</h2>
+        <FileUploadButton type={type} onUploaded={reload} />
       </div>
-    </div>
+      <List type={type} lists={list} onChanged={reload} />
+    </section>
   );
 };
 

@@ -1,138 +1,164 @@
+"use client"
 import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
+import { Button, CircularProgress } from '@mui/material';
+import ListAltRoundedIcon from '@mui/icons-material/ListAltRounded';
+import VpnKeyRoundedIcon from '@mui/icons-material/VpnKeyRounded';
+import LockOpenRoundedIcon from '@mui/icons-material/LockOpenRounded';
 import SimpleDialog from './dialog';
-import { fetchKeys, fetchList, prepareCrack, startCrack } from '@/app/lib/data';
-import { Alert } from '@mui/material';
-
-interface KeyInfo {
-  apName: string;
-  bssid: string;
-  password: string;
-}
+import { useToast } from '../toast';
+import { fetchKeys, fetchList, prepareCrack, startCrack, KeyInfo } from '@/app/lib/data';
 
 interface CrackerProps {
   setActivated: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const Cracker: React.FC<CrackerProps> = ({ setActivated }) => {
-  const [wordlists, setWordlists] = useState<string[]>([])
-  const [hashesInfo, setHashesInfo] = useState<KeyInfo[]>([])
-  const [hashes, setHashes] = useState<string[]>([])
-  const [wordlistSelected, setWordlistSelected] = useState<string | null>(null)
-  const [hashSelected, setHashSelected] = useState<string | null>(null)
-  const [openWordlistDialog, setOpenWordlistDialog] = useState(false)
-  const [openHashDialog, setOpenHashDialog] = useState(false)
-  const [showAlert, setShowAlert] = useState(false);
+const StepCard: React.FC<{
+  step: number;
+  title: string;
+  icon: React.ReactNode;
+  value: string | null;
+  placeholder: string;
+  disabled?: boolean;
+  busy?: boolean;
+  onClick: () => void;
+}> = ({ step, title, icon, value, placeholder, disabled, busy, onClick }) => (
+  <button
+    onClick={onClick}
+    disabled={disabled || busy}
+    className={`flex flex-1 flex-col items-center gap-3 rounded-xl border p-6 text-center transition ${
+      value
+        ? 'border-brand bg-brand/10'
+        : 'border-[color:var(--border)] bg-surface-hi hover:border-brand/50'
+    } disabled:cursor-not-allowed disabled:opacity-40`}
+  >
+    <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--text-dim)]">
+      Step {step}
+    </span>
+    <div
+      className={`flex h-16 w-16 items-center justify-center rounded-full ${
+        value ? 'bg-brand/20 text-brand' : 'bg-white/5 text-[color:var(--text-dim)]'
+      }`}
+    >
+      {busy ? <CircularProgress size={26} color="inherit" /> : icon}
+    </div>
+    <div className="font-semibold text-white">{title}</div>
+    <div className="max-w-[16rem] truncate text-sm text-[color:var(--text-dim)]">
+      {value || placeholder}
+    </div>
+  </button>
+);
 
-  const handleCrackExecution = async (selectedHash: string) => {
-    setActivated(3)
-    await startCrack(selectedHash)
-    setShowAlert(true);
-    setTimeout(() => {
-      setShowAlert(false);
-    }, 2500);
+const Cracker: React.FC<CrackerProps> = ({ setActivated }) => {
+  const toast = useToast();
+  const [wordlists, setWordlists] = useState<string[]>([]);
+  const [hashesInfo, setHashesInfo] = useState<KeyInfo[]>([]);
+  const [hashes, setHashes] = useState<string[]>([]);
+  const [wordlistSelected, setWordlistSelected] = useState<string | null>(null);
+  const [hashSelected, setHashSelected] = useState<string | null>(null);
+  const [openWordlistDialog, setOpenWordlistDialog] = useState(false);
+  const [openHashDialog, setOpenHashDialog] = useState(false);
+  const [preparing, setPreparing] = useState(false);
+  const [cracking, setCracking] = useState(false);
+
+  const handleCrackExecution = async () => {
+    if (!hashSelected || !wordlistSelected) return;
+    setCracking(true);
+    const res = await startCrack(hashSelected, wordlistSelected);
+    setCracking(false);
+    if (res.ok) {
+      setActivated(3);
+      toast.success(res.data?.message || 'Crack finished — open the Vault to see the result');
+    } else {
+      toast.error(res.error || 'Cracking failed');
+    }
   };
 
   const handleWordlistClose = async (value: string) => {
-    setWordlistSelected(value)
-    await prepareCrack(value)
-    setOpenWordlistDialog(false)
+    setOpenWordlistDialog(false);
+    if (!value) return;
+    setWordlistSelected(value);
+    setPreparing(true);
+    const res = await prepareCrack(value);
+    setPreparing(false);
+    if (res.ok) toast.success(`Wordlist "${value}" prepared`);
+    else toast.error(res.error || 'Could not prepare the wordlist');
   };
 
   const handleHashClose = (value: string) => {
-    const [apName, bssid] = value.split('/');
-
-    // Realiza la transformación
-    const transformedValue = `${apName}+${bssid}.cap`;
-
-    setHashSelected(transformedValue);
-    setOpenHashDialog(false)
-    setActivated((prevActivated) => (value ? 2 : prevActivated))
-  }
+    setOpenHashDialog(false);
+    if (!value) return;
+    // `value` is the real capture filename ("{essid}+{bssid}.cap" or ".22000").
+    setHashSelected(value);
+    setActivated((prev) => (prev < 2 ? 2 : prev));
+  };
 
   useEffect(() => {
-    fetchList(setWordlists, "Wordlist");
-    fetchKeys(setHashesInfo, "hashDB");
+    fetchList(setWordlists, 'Wordlist');
+    fetchKeys(setHashesInfo, 'hashDB');
   }, []);
 
   useEffect(() => {
-    if (hashesInfo){
-      const updatedHashes = hashesInfo.map((info) => `${info.apName}/${info.bssid}`);
-      setHashes(updatedHashes);
+    if (hashesInfo) {
+      // Use the real capture filenames as both the label and the value.
+      setHashes(hashesInfo.map((info) => info.file || `${info.apName}+${info.bssid}.cap`));
     }
-  }, [hashesInfo]); 
+  }, [hashesInfo]);
 
   return (
-    <div className='bg-neutral-900 p-6 rounded-lg shadow-lg h-half-screen mt-6 ml-8 mr-8'>
-      <h2 className='text-white text-2xl font-bold mb-2'>Cracker</h2>
-      <div className='flex justify-center items-center gap-96'>
-        <div className='flex flex-col justify-center items-center'>
-          <Image
-            src={`${ wordlistSelected ? '/wordlistSelected.png' : '/noSelected.png'}`}
-            className='mx-auto rounded-full object-cover transition transform hover:scale-110 cursor-pointer'
-            alt='logo'
-            width={180}
-            height={120}
-            priority
-            onClick={() => setOpenWordlistDialog(true)}
-          />
-          <div className='text-white text-lg font-semibold mt-2'>
-            {wordlistSelected ? `Wordlist: ${wordlistSelected}` : 'Select Wordlist'}
-          </div>
-          <SimpleDialog
-            title="Select Wordlist"
-            open={openWordlistDialog}
-            selectedValue={wordlistSelected || ''}
-            onClose={handleWordlistClose}
-            options={wordlists}
-          />
-        </div>
-
-        <div className='flex flex-col justify-center items-center'>
-          <Image
-            src={`${ hashSelected ? '/hashSelected.png' : '/noSelected.png'}`}
-            className={`mx-auto rounded-full object-cover transition transform hover:scale-110 ${
-              wordlistSelected ? '' : 'pointer-events-none opacity-50'
-            } cursor-pointer`}
-            alt='logo'
-            width={180}
-            height={120}
-            priority
-            onClick={() => setOpenHashDialog(true)}
-          />
-          <div className='text-white text-lg font-semibold mt-2'>
-            {hashSelected ? `Hash: ${hashSelected}` : 'Select Hash'}
-          </div>
-          <SimpleDialog
-            title="Select Hash"
-            open={openHashDialog}
-            selectedValue={hashSelected || ''}
-            onClose={handleHashClose}
-            options={hashes}
-          />
-        </div>
-
-        <div className='flex flex-col justify-center items-center'>
-          <Image
-            src='/noSelected.png'
-            className={`mx-auto rounded-full object-cover transition transform hover:scale-110  ${
-              hashSelected ? '' : 'pointer-events-none opacity-50'
-            }`}
-            alt='logo'
-            width={180}
-            height={120}
-            priority
-            onClick={() =>{if (hashSelected !== null && wordlistSelected !== null) handleCrackExecution(hashSelected)}}
-          />
-          <div className='text-white text-lg font-semibold mt-2'>Crack</div>
-        </div>
-        {showAlert && (
-          <Alert severity="success" sx={{ position: 'fixed', bottom: 16, left: 16 }}>
-            Password Cracked
-          </Alert>
-        )}
+    <section className="panel p-6">
+      <div className="mb-4 flex items-center gap-2">
+        <LockOpenRoundedIcon className="text-brand" />
+        <h2 className="text-xl font-bold text-white">Cracker</h2>
       </div>
-    </div>
+
+      <div className="flex flex-col items-stretch gap-4 md:flex-row">
+        <StepCard
+          step={1}
+          title="Wordlist"
+          icon={<ListAltRoundedIcon />}
+          value={wordlistSelected}
+          placeholder="Select a wordlist"
+          busy={preparing}
+          onClick={() => setOpenWordlistDialog(true)}
+        />
+        <StepCard
+          step={2}
+          title="Handshake"
+          icon={<VpnKeyRoundedIcon />}
+          value={hashSelected}
+          placeholder="Select a captured handshake"
+          disabled={!wordlistSelected}
+          onClick={() => setOpenHashDialog(true)}
+        />
+        <StepCard
+          step={3}
+          title="Crack"
+          icon={<LockOpenRoundedIcon />}
+          value={cracking ? 'Cracking…' : null}
+          placeholder="Run the crack"
+          disabled={!hashSelected || !wordlistSelected}
+          busy={cracking}
+          onClick={handleCrackExecution}
+        />
+      </div>
+
+      <SimpleDialog
+        title="Select wordlist"
+        open={openWordlistDialog}
+        selectedValue={wordlistSelected || ''}
+        onClose={handleWordlistClose}
+        options={wordlists}
+        emptyMessage="No wordlists yet — upload one in the Vault."
+      />
+      <SimpleDialog
+        title="Select handshake"
+        open={openHashDialog}
+        selectedValue={hashSelected || ''}
+        onClose={handleHashClose}
+        options={hashes}
+        emptyMessage="No captured handshakes yet — run an attack first."
+      />
+    </section>
   );
 };
 

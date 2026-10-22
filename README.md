@@ -34,10 +34,23 @@ This is a tool designed for performing WiFi audits ethically and professionally.
 
 Before starting, ensure you have the following:
 
-- Aircrack-ng Suite  
-- MDK3  
-- HCXDumpTool  
-- Pyrit  
+**System tools** (available in Kali, or `apt install` them):
+
+- Aircrack-ng Suite (`airmon-ng`, `airodump-ng`, `aireplay-ng`, `aircrack-ng`, `packetforge-ng`) — handshake detection and WPA/WEP cracking
+- MDK3
+- HCXDumpTool + HCXTools (`hcxdumptool`, `hcxpcapngtool`) — PMKID capture/extraction
+- Hashcat (for cracking PMKID hashes, mode 22000)
+- Reaver (for WPS attacks)
+- macchanger
+- wireless-tools (`iwconfig`)
+
+**Runtimes:**
+
+- Python 3.8+
+- Node.js 18+ and npm (for the web interface)
+
+**Hardware:**
+
 - Linux bare-metal or a WiFi adapter compatible with monitor mode (see [network card](https://www.tienda-alfanetwork.com/alfa-awus036ach-c-adaptador-wifi-usb-ac1200.html)).  
 
 ---
@@ -48,17 +61,36 @@ Before starting, ensure you have the following:
    ```bash
    git clone https://github.com/p3n4x0/WiFiGhost.git && cd WiFiGhost
    ```
-2. **Install the dependencies:**
+2. **Install the backend dependencies:**
     ```bash
     pip install -r requirements.txt
-    ```   
-3. **Set permissions:**
+    ```
+    On Kali and other PEP 668 "externally managed" systems the command above
+    is blocked. Either install the package from apt:
+    ```bash
+    sudo apt install -y python3-flask-cors python3-flask python3-yaml
+    ```
+    or use a virtual environment (and then launch the server with
+    `sudo venv/bin/python backend/server.py`):
+    ```bash
+    python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
+    ```
+3. **Install the frontend dependencies:**
+    ```bash
+    cd frontend && npm install && cd ..
+    ```
+4. **Set permissions:**
     ```bash
     sudo chmod +x backend/server.py
     ```
-4. **Set Database Config (also feel free to change the mac oui as well as the secret if needed):**
+5. **Review the configuration (feel free to change the spoofed MAC OUI, the Flask secret, host/port or the capture path):**
     ```bash
     vi backend/config/config.yaml
+    ```
+    The frontend talks to `http://127.0.0.1:8080` by default. To point it at a
+    different backend, create `frontend/.env.local` with:
+    ```bash
+    NEXT_PUBLIC_API_URL=http://127.0.0.1:8080
     ```
 ---
 
@@ -71,7 +103,24 @@ Before starting, ensure you have the following:
    ```bash
    cd frontend && npm run dev
    ```
-3. Go `localhost:3000`, put your network card in monitor mode and start hacking! Below is a video demonstrating an example of use: attacking a WPA2-PSK network with authenticated clients.
+3. Go to `localhost:3000`, put your wireless interface in monitor mode and start auditing.
 
+### Demo
 
-https://github.com/user-attachments/assets/24024d17-d980-42ef-8287-dc81d96543e3
+A short walkthrough of a **Deauthentication** attack — kicking a client to
+capture the WPA2 handshake:
+
+<!-- Drop your recording here: on GitHub, edit this README and drag the video
+     file onto the line below. It will upload to user-attachments and embed. -->
+
+_Demo video coming soon._
+
+---
+
+## ⚠️ Legal & Authorization Notice
+
+WiFiGhost is intended **only** for auditing networks you own or that you have
+explicit, written permission to test. Intercepting traffic, deauthenticating
+clients or cracking keys on networks you are not authorized to assess is
+illegal in most jurisdictions. You are solely responsible for how you use this
+tool. The authors accept no liability for misuse or for any damage caused.

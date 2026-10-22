@@ -1,38 +1,45 @@
 "use client"
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { IconButton, Tooltip } from '@mui/material';
+import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import KeyList from "@/app/ui/components/bault/keys";
 import ListContainer from "@/app/ui/components/bault/listContainer";
-import { fetchKeys } from '@/app/lib/data';
+import { fetchKeys, KeyInfo } from '@/app/lib/data';
 
-interface KeyInfo {
-  apName: string;
-  bssid: string;
-  password: string;
-}
-
-export default function Home() {
-
+export default function VaultPage() {
   const [keys, setKeys] = useState<KeyInfo[]>([]);
 
+  const reloadKeys = useCallback(() => {
+    fetchKeys(setKeys, "all");
+  }, []);
+
   useEffect(() => {
-    fetchKeys(setKeys, "all")
-  }, []); 
-  
+    reloadKeys();
+  }, [reloadKeys]);
+
   return (
-    <div className="flex-1 flex min-h-screen text-white">
-      {/* Sección de contraseñas */}
-      <div className="flex-1 flex items-center justify-center ml-8 mb-48">
-        <KeyList keysInfo={keys} />
+    <main className="flex flex-col gap-6 pt-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Vault</h1>
+          <p className="text-sm text-[color:var(--text-dim)]">
+            Captured handshakes, cracked keys and your wordlists.
+          </p>
+        </div>
+        <Tooltip title="Refresh keys">
+          <IconButton onClick={reloadKeys}>
+            <RefreshRoundedIcon className="text-[color:var(--text-dim)]" />
+          </IconButton>
+        </Tooltip>
       </div>
 
-      {/* Sección de wordlists y opción de subir */}
-      <div className="flex-1 flex flex-col items-center justify-center ml-4 mb-40">
-        <ListContainer type="Wordlist" />
-        <ListContainer type="FakeNetworks" />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <KeyList keysInfo={keys} />
+        <div className="flex flex-col gap-6">
+          <ListContainer type="Wordlist" />
+          <ListContainer type="FakeNetworks" />
+        </div>
       </div>
-    </div>
+    </main>
   );
 }
-
-
-

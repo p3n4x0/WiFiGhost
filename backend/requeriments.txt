@@ -1,7 +1,0 @@
-flask
-PyYAML
-re
-threading
-flask_socketio
-simple-websocket
-flask_session

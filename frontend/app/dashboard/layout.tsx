@@ -1,19 +1,15 @@
 "use client"
-import '../ui/globals.css'
 import { NavbarComponent } from '../ui/components/navbar'
 
-
-export default function RootLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   return (
-    <html lang="es">
-      <body className="antialiased">
-        <NavbarComponent />
-        {children}
-      </body>
-    </html>
+    <div className="min-h-screen">
+      <NavbarComponent />
+      <div className="mx-auto max-w-7xl px-4 pb-16">{children}</div>
+    </div>
   )
 }
