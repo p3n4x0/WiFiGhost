@@ -15,7 +15,7 @@
     "@mui/icons-material": "^5.15.3",
     "@mui/material": "^5.15.2",
     "keep-react": "^1.1.0",
-    "next": "14.0.4",
+    "next": "^14.2.33",
     "react": "^18",
     "react-copy-to-clipboard": "^5.1.0",
     "react-dom": "^18",
@@ -29,7 +29,7 @@
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
-    "eslint-config-next": "14.0.4",
+    "eslint-config-next": "^14.2.33",
     "postcss": "^8",
     "tailwindcss": "^3.3.0",
     "typescript": "^5"

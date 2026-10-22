@@ -3,69 +3,89 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { init } from './lib/data'
 
+const features = [
+  {
+    title: 'Scan',
+    desc: 'Discover nearby access points, channels, security type and associated clients in real time.',
+  },
+  {
+    title: 'Audit',
+    desc: 'Run the right attack for each target: deauth, PMKID, WPS and WEP techniques.',
+  },
+  {
+    title: 'Crack',
+    desc: 'Recover handshakes and test them against your wordlists, then store the results in the vault.',
+  },
+]
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <Link
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://github.com/p3n4x0"
-          >
-            By{' '}
-            <Image 
-            src='/avatar.png' 
-            width={40}
-            height={40}
-            alt='avatar'
-            className='hidden md:block rounded-full transition transform hover:scale-110'
-            />
-          </Link>
-        </div>
-      </div>
-
-      <div className="max-w-2xl text-center">
-        <h1 className="text-4xl font-bold mb-20 transition">
-          ¡Bienvenido a WiFiGhost!
-        </h1>
-        <Link href="/dashboard" onClick={() => init()}>
-          <img
-            src="/logo.png" // Reemplaza con la ruta de tu imagen
-            alt="WiFiGhost"
-            className="mx-auto rounded-full mb-8 h-80 w-80 object-cover transition transform hover:scale-110"
+    <main className="relative min-h-screen">
+      {/* Top-right author link */}
+      <div className="absolute right-6 top-6 z-10">
+        <Link
+          className="flex items-center gap-2 text-sm text-[color:var(--text-dim)] transition hover:text-white"
+          href="https://github.com/p3n4x0"
+          target="_blank"
+        >
+          by p3n4x0
+          <Image
+            src="/avatar.png"
+            width={32}
+            height={32}
+            alt="avatar"
+            className="rounded-full ring-1 ring-[color:var(--border)] transition hover:scale-110"
           />
         </Link>
       </div>
 
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left before:w-[480px]">
-        <Link
-          href="https://github.com/p3n4x0/WiFiGhost"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Github{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 `} >
-            View the repo!
-          </p>
+      <div className="mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center px-6 py-20 text-center">
+        <Link href="/dashboard" onClick={() => init()} className="group">
+          <Image
+            src="/logo.png"
+            alt="WiFiGhost"
+            width={200}
+            height={200}
+            priority
+            className="mx-auto h-44 w-44 rounded-full object-cover ring-1 ring-[color:var(--border)] shadow-[0_0_60px_-10px_rgba(139,92,246,0.5)] transition-transform duration-300 group-hover:scale-105"
+          />
         </Link>
+
+        <h1 className="mt-10 bg-gradient-to-b from-white to-neutral-400 bg-clip-text text-5xl font-bold tracking-tight text-transparent">
+          WiFiGhost
+        </h1>
+        <p className="mt-4 max-w-xl text-balance text-[color:var(--text-dim)]">
+          An ethical WiFi auditing toolkit with a web interface — scan, audit and crack
+          wireless networks you are authorised to test.
+        </p>
+
+        <Link
+          href="/dashboard"
+          onClick={() => init()}
+          className="mt-8 inline-flex items-center gap-2 rounded-xl bg-brand px-6 py-3 font-semibold text-white shadow-lg shadow-brand/20 transition hover:bg-brand-dark hover:scale-[1.02]"
+        >
+          Launch dashboard
+          <span aria-hidden className="transition group-hover:translate-x-1">→</span>
+        </Link>
+
+        <div className="mt-16 grid w-full gap-4 sm:grid-cols-3">
+          {features.map((f) => (
+            <div
+              key={f.title}
+              className="panel p-5 text-left transition hover:border-brand/50"
+            >
+              <h2 className="mb-2 text-lg font-semibold text-white">{f.title}</h2>
+              <p className="text-sm text-[color:var(--text-dim)]">{f.desc}</p>
+            </div>
+          ))}
+        </div>
 
         <Link
           href="https://github.com/p3n4x0/WiFiGhost"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
+          target="_blank"
+          className="mt-10 text-sm text-[color:var(--text-dim)] underline-offset-4 transition hover:text-white hover:underline"
         >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Help{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            How to use.
-          </p>
+          View the repository on GitHub →
         </Link>
       </div>
     </main>
