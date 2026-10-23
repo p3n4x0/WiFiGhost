@@ -88,9 +88,9 @@ Before starting, ensure you have the following:
     vi backend/config/config.yaml
     ```
     The frontend talks to `http://127.0.0.1:8080` by default. To point it at a
-    different backend, create `frontend/.env.local` with:
+    different port, create `frontend/.env.local` with:
     ```bash
-    NEXT_PUBLIC_API_URL=http://127.0.0.1:8080
+    NEXT_PUBLIC_API_URL=http://127.0.0.1:<port>
     ```
 ---
 
