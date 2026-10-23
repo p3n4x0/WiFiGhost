@@ -9,6 +9,8 @@ __pycache__/
 
 # Environment variables file
 .env
+.env.local
+.env*.local
 
 # Compiled Python files
 *.pyc
@@ -53,3 +55,6 @@ tailwind.config.js
 
 # Other Next.js build artifacts
 out/
+
+# TypeScript incremental build info
+*.tsbuildinfo

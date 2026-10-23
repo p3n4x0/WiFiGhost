@@ -1,58 +1,58 @@
 "use client"
-import { Navbar } from "keep-react"
-import { useState } from 'react';
-import { PopoverComponent } from './netcard';
-import { Alert } from '@mui/material';
-import Link from "next/link";
-import PolicyRoundedIcon from '@mui/icons-material/PolicyRounded';
-import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
+import Image from 'next/image'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import HomeRoundedIcon from '@mui/icons-material/HomeRounded'
+import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded'
+import { NetcardControl } from './netcard'
+
+const links = [
+  { href: '/dashboard', label: 'Dashboard', icon: HomeRoundedIcon },
+  { href: '/dashboard/bault', label: 'Vault', icon: ShieldRoundedIcon },
+]
 
 export const NavbarComponent = () => {
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
-
-  const handleCheckout = (netcardSelected: string) => {
-    // Lógica adicional si es necesario antes de mostrar la alerta
-    setAlertMessage(netcardSelected ? `Enable ${netcardSelected} Monitoring` : 'Disable Monitoring');
-    setShowAlert(true);
-    setTimeout(() => {
-      setShowAlert(false);
-    }, 2500);
-  };
+  const pathname = usePathname()
 
   return (
-    <Navbar fluid={true} className="bg-black ">
-      <Navbar.Container className="flex items-center justify-between bg-neutral-900 mt-2 rounded-full">
-        <Navbar.Container
-          tag="ul"
-          className="lg:flex hidden items-center justify-between mt-1 mb-1"
-        >
-          <Link href="/dashboard/bault" className='rounded-full px-5 py-2 ml-3 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30 hover:scale-110'>
-            <PolicyRoundedIcon className="text-white"/>
-          </Link>
-        </Navbar.Container>
+    <header className="sticky top-0 z-30 border-b border-[color:var(--border)] bg-[color:var(--bg)]/80 backdrop-blur">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+        <Link href="/" className="flex items-center gap-3">
+          <Image
+            src="/logo.png"
+            alt="WiFiGhost"
+            width={36}
+            height={36}
+            className="rounded-full ring-1 ring-[color:var(--border)]"
+          />
+          <span className="text-lg font-semibold tracking-tight text-white">
+            WiFiGhost
+          </span>
+        </Link>
 
-        <Navbar.Container
-          tag="ul"
-          className="lg:flex hidden items-center justify-between mt-1 mb-1"
-        >
-          <Link href="/dashboard" className='rounded-full px-5 py-2 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30 hover:scale-110'>
-            <HomeRoundedIcon className="text-white"/>
-          </Link>
-        </Navbar.Container>
-        
-        <Navbar.Container
-          tag="ul"
-          className="lg:flex hidden items-center justify-between mt-1 mb-1"
-        >
-          <PopoverComponent onCheckout={handleCheckout} />
-          {showAlert && (
-            <Alert severity="success" sx={{ position: 'fixed', bottom: 16, left: 16 }}>
-              {alertMessage}
-            </Alert>
-          )}
-        </Navbar.Container>
-      </Navbar.Container>
-    </Navbar>
-  );
+        <nav className="flex items-center gap-1">
+          {links.map(({ href, label, icon: Icon }) => {
+            const active = pathname === href
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                  active
+                    ? 'bg-brand/15 text-brand'
+                    : 'text-[color:var(--text-dim)] hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                <Icon fontSize="small" />
+                <span className="hidden sm:inline">{label}</span>
+              </Link>
+            )
+          })}
+          <div className="ml-2 pl-2">
+            <NetcardControl />
+          </div>
+        </nav>
+      </div>
+    </header>
+  )
 }

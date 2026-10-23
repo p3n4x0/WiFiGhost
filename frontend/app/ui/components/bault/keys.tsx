@@ -1,89 +1,117 @@
+"use client"
 import React, { useState } from 'react';
 import Pagination from '../pagination';
-import { Alert, IconButton, Tooltip } from '@mui/material';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import { IconButton, Tooltip } from '@mui/material';
+import ContentCopyIcon from '@mui/icons-material/ContentCopyRounded';
+import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-
-interface KeyInfo {
-  apName: string;
-  bssid: string;
-  password: string;
-}
+import { useToast } from '../toast';
+import { KeyInfo } from '@/app/lib/data';
 
 interface KeyListProps {
   keysInfo: KeyInfo[];
 }
 
 const KeyList: React.FC<KeyListProps> = ({ keysInfo }) => {
+  const toast = useToast();
   const [selectedKey, setSelectedKey] = useState<KeyInfo | null>(null);
-  const [showAlert, setShowAlert] = useState(false);
-  // Lógica de paginación
   const [page, setPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 8;
   const totalItems = keysInfo.length;
   const showPagination = totalItems > itemsPerPage;
 
   const handleKeyClick = (key: KeyInfo) => {
-    // Deseleccionar la clave si ya estaba seleccionada
-    setSelectedKey((prevKey) => (prevKey === key || key.password === null ? null : key));
-  };
-
-  const handleCopyToClipboard = () => {
-    setShowAlert(true);
-    setTimeout(() => {
-      setShowAlert(false);
-    }, 1000);
-  };
-
-  const handleChangePage = (event: React.ChangeEvent<unknown>, newPage: number) => {
-    setPage(newPage);
+    if (!key.password) return;
+    setSelectedKey((prev) => (prev === key ? null : key));
   };
 
   const startIndex = (page - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
+  const visible = keysInfo.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="bg-neutral-900 p-6 rounded-lg shadow-lg">
-      <h2 className="text-white text-2xl font-bold mb-4">Wi-Fi Keys</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {keysInfo.slice(startIndex, endIndex).map((key, index) => (
-          <div
-            key={index}
-            onClick={() => handleKeyClick(key)}
-            className={`cursor-pointer p-4 rounded-lg ${
-              selectedKey === key ? 'bg-neutral-600' : 'bg-neutral-800 hover:bg-neutral-700'
-            } transition duration-300`}
-            style={{ overflow: 'hidden' }}
-          >
-            <div className="flex items-center justify-between mb-2">
-            <h3 className="text-white text-lg font-semibold mb-2">
-              {key.apName}, {key.bssid}
-            </h3>
-              {selectedKey === key && (
-                <CopyToClipboard text={key.password} onCopy={handleCopyToClipboard}>
-                  <Tooltip title="Copy Password to Clipboard" placement='top'>
-                    <IconButton size="small" className='bg-white'>
-                      <ContentCopyIcon />
-                    </IconButton>
-                  </Tooltip>
-                </CopyToClipboard>
-              )}
-              {showAlert && (
-                <Alert severity="success" sx={{ position: 'fixed', bottom: 16, left: 16 }}>
-                  Copied to Clipboard
-                </Alert>
-              )}
-            </div>
-            <p className={selectedKey === key ? 'text-white' : 'text-gray-400'} style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-              {selectedKey === key ? 
-                `${key.password}` : key.password !== null ? 
-                  'Click to reveal password': ''}
-            </p>
-          </div>
-        ))}
+    <section className="panel p-6">
+      <div className="mb-4 flex items-center gap-2">
+        <KeyRoundedIcon className="text-brand" />
+        <h2 className="text-xl font-bold text-white">Wi-Fi Keys</h2>
       </div>
-      <Pagination totalItems={totalItems} itemsPerPage={itemsPerPage} page={page} onChangePage={handleChangePage} showPagination={showPagination} />
-    </div>
+
+      {totalItems === 0 ? (
+        <p className="py-10 text-center text-sm text-[color:var(--text-dim)]">
+          No keys or handshakes stored yet.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {visible.map((key, index) => {
+            const cracked = Boolean(key.password);
+            const selected = selectedKey === key;
+            return (
+              <div
+                key={`${key.apName}-${key.bssid}-${index}`}
+                onClick={() => handleKeyClick(key)}
+                className={`rounded-xl border p-4 transition ${
+                  cracked ? 'cursor-pointer' : ''
+                } ${
+                  selected
+                    ? 'border-brand bg-brand/10'
+                    : 'border-[color:var(--border)] bg-surface-hi hover:border-brand/40'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="truncate font-semibold text-white">
+                      {key.apName || <span className="italic text-[color:var(--text-dim)]">&lt;hidden&gt;</span>}
+                    </h3>
+                    <p className="truncate font-mono text-xs text-[color:var(--text-dim)]">
+                      {key.bssid}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
+                      cracked
+                        ? 'bg-emerald-500/15 text-emerald-400'
+                        : 'bg-white/10 text-[color:var(--text-dim)]'
+                    }`}
+                  >
+                    {cracked ? 'cracked' : 'captured'}
+                  </span>
+                </div>
+
+                {cracked && (
+                  <div className="mt-3 flex items-center justify-between gap-2 rounded-lg bg-black/30 px-3 py-2">
+                    <code className="truncate text-sm text-white">
+                      {selected ? key.password : '•••••••• (click to reveal)'}
+                    </code>
+                    {selected && (
+                      <CopyToClipboard
+                        text={key.password || ''}
+                        onCopy={() => toast.success('Password copied to clipboard')}
+                      >
+                        <Tooltip title="Copy password">
+                          <IconButton
+                            size="small"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <ContentCopyIcon fontSize="small" className="text-brand" />
+                          </IconButton>
+                        </Tooltip>
+                      </CopyToClipboard>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <Pagination
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+        page={page}
+        onChangePage={(_, p) => setPage(p)}
+        showPagination={showPagination}
+      />
+    </section>
   );
 };
 

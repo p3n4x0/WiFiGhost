@@ -1,53 +1,46 @@
-import React, { ChangeEvent } from 'react';
-import { Button } from '@mui/material';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+"use client"
+import React, { ChangeEvent, useRef, useState } from 'react';
+import { Button, CircularProgress } from '@mui/material';
+import CloudUploadIcon from '@mui/icons-material/CloudUploadRounded';
+import { useToast } from '../toast';
 import { uploadFile } from '@/app/lib/data';
 
 interface FileUploadButtonProps {
-  onUploadSuccess: (updatedList: string[]) => void;
-  lists: string[];
-  type: string
+  type: string;
+  onUploaded: () => void;
 }
 
-const FileUploadButton: React.FC<FileUploadButtonProps> = ({ onUploadSuccess, lists, type }) => {
+const FileUploadButton: React.FC<FileUploadButtonProps> = ({ type, onUploaded }) => {
+  const toast = useToast();
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      try {
-        // Simulación de la carga exitosa
-        // Aquí deberías realizar la lógica de carga real
-        uploadFile(type,file)
-        // Asumiendo que las list se reciben del backend después de la carga
-        const updatedList: string[] = [...lists, file.name];
-
-        // Devolver las list actualizadas al componente padre
-        onUploadSuccess(updatedList);
-      } catch (error) {
-        console.error('Error al subir la lista:', error);
-      }
+    if (!file) return;
+    setUploading(true);
+    const res = await uploadFile(type, file);
+    setUploading(false);
+    if (res.ok) {
+      toast.success(`Uploaded ${file.name}`);
+      onUploaded();
+    } else {
+      toast.error(res.error || 'Upload failed');
     }
+    if (inputRef.current) inputRef.current.value = '';
   };
 
   return (
-    <div className="flex items-center space-x-2">
-      <label>
-        <Button
-          variant="contained"
-          component="span"
-          startIcon={<CloudUploadIcon />}
-          className='bg-neutral-800'
-        >
-          <input
-            type="file"
-            accept=".txt"
-            onChange={handleFileChange}
-            style={{ display: 'none' }}
-          />
-          Subir {type}
-        </Button>
-      </label>
-    </div>
+    <Button
+      component="label"
+      size="small"
+      variant="outlined"
+      startIcon={uploading ? <CircularProgress size={16} color="inherit" /> : <CloudUploadIcon />}
+      disabled={uploading}
+    >
+      Upload
+      <input ref={inputRef} type="file" accept=".txt" hidden onChange={handleFileChange} />
+    </Button>
   );
 };
 

@@ -1,39 +1,61 @@
-import React, { useState } from "react";
-import { Stepper, Step, StepLabel } from "@mui/material";
-import WifiFindIcon from '@mui/icons-material/WifiFind';
-import AttackIcon from '@mui/icons-material/Security';
-import LockOpenIcon from '@mui/icons-material/LockOpen';
+"use client"
+import React from 'react';
+import WifiFindIcon from '@mui/icons-material/WifiFindRounded';
+import SecurityIcon from '@mui/icons-material/SecurityRounded';
+import LockOpenIcon from '@mui/icons-material/LockOpenRounded';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 
 interface StepperProps {
   isActivated: number;
 }
 
-const StepperComponent: React.FC<StepperProps> = ({ isActivated }) => {
-  const steps = [
-    { label: "Scanning Wireless Networks", icon: <WifiFindIcon />, color: "" },
-    { label: "Attacked", icon: <AttackIcon />, color: "" },
-    { label: "Cracked", icon: <LockOpenIcon />, color: "" },
-  ];
+const steps = [
+  { label: 'Scan networks', icon: WifiFindIcon },
+  { label: 'Attack target', icon: SecurityIcon },
+  { label: 'Crack handshake', icon: LockOpenIcon },
+];
 
+const StepperComponent: React.FC<StepperProps> = ({ isActivated }) => {
   return (
-    <div className="bg-neutral-900 p-4 rounded-full shadow-lg h-half-screen mt-8 ml-8 mr-8">
-      <Stepper alternativeLabel>
-        {steps.map((step, index) => (
-          <Step key={index}>
-            <StepLabel
-              StepIconComponent={() => (
-                <div className={index < isActivated ? "text-green-500" : "text-white"}>
-                  {step.icon}
+    <div className="panel px-6 py-5">
+      <ol className="flex items-center">
+        {steps.map((step, index) => {
+          const done = index < isActivated;
+          const current = index === isActivated;
+          const Icon = step.icon;
+          return (
+            <React.Fragment key={step.label}>
+              <li className="flex flex-col items-center gap-2">
+                <div
+                  className={`flex h-11 w-11 items-center justify-center rounded-full border transition ${
+                    done
+                      ? 'border-success bg-success/15 text-success'
+                      : current
+                      ? 'border-brand bg-brand/15 text-brand'
+                      : 'border-[color:var(--border)] bg-surface-hi text-[color:var(--text-dim)]'
+                  }`}
+                >
+                  {done ? <CheckRoundedIcon /> : <Icon />}
                 </div>
+                <span
+                  className={`text-xs font-medium ${
+                    done || current ? 'text-white' : 'text-[color:var(--text-dim)]'
+                  }`}
+                >
+                  {step.label}
+                </span>
+              </li>
+              {index < steps.length - 1 && (
+                <div
+                  className={`mx-2 mb-6 h-0.5 flex-1 rounded transition ${
+                    index < isActivated ? 'bg-success' : 'bg-[color:var(--border)]'
+                  }`}
+                />
               )}
-            >
-              <div className={index < isActivated ? "text-green-500" : "text-white"}>
-                {step.label}
-              </div>
-            </StepLabel>
-          </Step>
-        ))}
-      </Stepper>
+            </React.Fragment>
+          );
+        })}
+      </ol>
     </div>
   );
 };
