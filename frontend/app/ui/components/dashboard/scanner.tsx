@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Button,
   CircularProgress,
@@ -51,7 +51,12 @@ const securityColor = (type: string) => {
 
 const Scanner: React.FC<APListProps> = ({ isActivated, setActivated }) => {
   const toast = useToast();
-  const [selectedAP, setSelectedAP] = useState<ScanInfo | null>(null);
+  // Track the selection by BSSID (stable) rather than by object reference:
+  // the scan socket emits a fresh array every few seconds, so holding the
+  // object itself would drop the selection — and the attack panel — on every
+  // refresh. lastSelectedAP keeps the panel up if the AP blips out for a cycle.
+  const [selectedBssid, setSelectedBssid] = useState<string | null>(null);
+  const lastSelectedAP = useRef<ScanInfo | null>(null);
   const [isFetching, setIsFetching] = useState(false);
   const [attack, setAttack] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -61,6 +66,13 @@ const Scanner: React.FC<APListProps> = ({ isActivated, setActivated }) => {
   const [scans, setScans] = useState<ScanInfo[] | null>(null);
   const [fakeNetworks, setFakeNetworks] = useState<string[]>([]);
   const [scanning, setScanning] = useState(false);
+
+  const selectedAP = useMemo<ScanInfo | null>(() => {
+    if (!selectedBssid) return null;
+    const match = scans?.find((s) => s.bssidStation === selectedBssid);
+    if (match) lastSelectedAP.current = match;
+    return match ?? lastSelectedAP.current;
+  }, [scans, selectedBssid]);
 
   const handleScanButton = async () => {
     const res = await startScan();
@@ -76,7 +88,7 @@ const Scanner: React.FC<APListProps> = ({ isActivated, setActivated }) => {
     const res = await stopScan();
     setScanning(false);
     setScans(null);
-    setSelectedAP(null);
+    setSelectedBssid(null);
     setAttack(null);
     setActivated(0);
     if (res.ok) toast.info('Scan stopped');
@@ -102,8 +114,8 @@ const Scanner: React.FC<APListProps> = ({ isActivated, setActivated }) => {
   const showPagination = totalItems > itemsPerPage;
 
   const handleAPClick = async (ap: ScanInfo) => {
-    const next = selectedAP === ap ? null : ap;
-    setSelectedAP(next);
+    const next = selectedBssid === ap.bssidStation ? null : ap.bssidStation;
+    setSelectedBssid(next);
     setAttack(null);
     setActivated(next ? 1 : 0);
     if (next) await setTarget(ap.bssidStation, ap.essidStation, ap.channelStation);
@@ -121,7 +133,7 @@ const Scanner: React.FC<APListProps> = ({ isActivated, setActivated }) => {
       if (res.ok) {
         toast.success(res.data?.message || 'Attack finished — check the Vault');
         setScanning(false);
-        setSelectedAP(null);
+        setSelectedBssid(null);
         setAttack(null);
         setActivated((prev) => (isActivated >= 1 ? 2 : prev));
       } else {
@@ -196,7 +208,7 @@ const Scanner: React.FC<APListProps> = ({ isActivated, setActivated }) => {
       ) : (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           {currentItems.map((ap) => {
-            const active = selectedAP === ap;
+            const active = selectedBssid === ap.bssidStation;
             return (
               <button
                 key={ap.bssidStation}
