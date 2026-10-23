@@ -110,10 +110,8 @@ Before starting, ensure you have the following:
 A short walkthrough of a **Deauthentication** attack — kicking a client to
 capture the WPA2 handshake:
 
-<!-- Drop your recording here: on GitHub, edit this README and drag the video
-     file onto the line below. It will upload to user-attachments and embed. -->
 
-_Demo video coming soon._
+https://github.com/user-attachments/assets/df8ff624-aa65-4708-b714-57b5ec956172
 
 ---
 
